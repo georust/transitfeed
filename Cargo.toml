@@ -1,9 +1,9 @@
 [package]
 name = "transitfeed"
-description = "Public transit decoder/encoder and utilities"
+description = "GTFS public transit decoder/encoder and utilities"
 license = "MIT"
-repository = "https://github.com/bfrog/transit"
-version = "0.1.0"
+repository = "https://github.com/bfrog/transitfeed"
+version = "0.1.1"
 authors = ["Tom Burdick <thomas.burdick@gmail.com>"]
 keywords = ["transit", "gtfs", "transitfeed"]
 
