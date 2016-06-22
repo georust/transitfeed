@@ -153,7 +153,7 @@ pub enum Timepoint {
     Exact,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TimeOffset {
     pub hours: u32,
     pub minutes: u32,
