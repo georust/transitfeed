@@ -29,7 +29,7 @@ fn bench_stop_time_decoder(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let mut csv = Csv::from_reader(&*data);
-        let decoder = StopTimeDecoder::new(&mut csv).unwrap();
+        let decoder = StopTimeDecoder::new(0, csv).unwrap();
         for stop_time in decoder {
             let _ = stop_time;
         }
