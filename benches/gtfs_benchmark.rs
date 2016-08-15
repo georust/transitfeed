@@ -8,8 +8,10 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::StopTimeDecoder;
+use transitfeed::{AgencyDecoder, StopDecoder, StopTimeDecoder};
 
+static AGENCY_DATA: &'static str = "./examples/agency.txt";
+static STOP_DATA: &'static str = "./examples/stop_times.txt";
 static STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
@@ -24,11 +26,37 @@ fn file_to_mem(fp: &str) -> Vec<u8> {
 }
 
 #[bench]
+fn bench_agency_decoder(b: &mut Bencher) {
+    let data = file_to_mem(AGENCY_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let decoder = AgencyDecoder::new(0, csv).unwrap();
+        for agency in decoder {
+            let _ = agency;
+        }
+    })
+}
+
+#[bench]
+fn bench_stop_decoder(b: &mut Bencher) {
+    let data = file_to_mem(STOP_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let decoder = StopDecoder::new(0, csv).unwrap();
+        for stop in decoder {
+            let _ = stop;
+        }
+    })
+}
+
+#[bench]
 fn bench_stop_time_decoder(b: &mut Bencher) {
     let data = file_to_mem(STOP_TIMES_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let mut csv = Csv::from_reader(&*data);
+        let csv = Csv::from_reader(&*data);
         let decoder = StopTimeDecoder::new(0, csv).unwrap();
         for stop_time in decoder {
             let _ = stop_time;

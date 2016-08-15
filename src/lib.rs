@@ -9,4 +9,4 @@ mod gtfs;
 mod error;
 
 pub use transit::*;
-pub use gtfs::{StopTimeDecoder};
+pub use gtfs::{AgencyDecoder, StopDecoder, StopTimeDecoder};
