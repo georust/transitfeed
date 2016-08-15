@@ -428,12 +428,12 @@ impl<B: BufRead> Iterator for StopTimeDecoder<B> {
 }
 
 #[test]
-fn decode_timeoffset_test() {
-    assert_eq!(decode_timeoffset(0, "bogus", "01:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(decode_timeoffset(0, "bogus""1:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(decode_timeoffset(0, "bogus", "01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(decode_timeoffset(0, "bogus", " 01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert!(decode_timeoffset(0, "bogus", ":01:01").is_err());
-    assert!(decode_timeoffset(0, "bogus", "ab:01:01").is_err());
-    assert!(decode_timeoffset(0, "bogus", "01::01").is_err());
+fn parse_timeoffset_test() {
+    assert_eq!(parse_timeoffset(0, "bogus", "01:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
+    assert_eq!(parse_timeoffset(0, "bogus", "1:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
+    assert_eq!(parse_timeoffset(0, "bogus", "01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
+    assert_eq!(parse_timeoffset(0, "bogus", " 01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
+    assert!(parse_timeoffset(0, "bogus", ":01:01").is_err());
+    assert!(parse_timeoffset(0, "bogus", "ab:01:01").is_err());
+    assert!(parse_timeoffset(0, "bogus", "01::01").is_err());
 }
