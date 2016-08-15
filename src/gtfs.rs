@@ -1,77 +1,11 @@
-use std::error::Error;
 use std::str::FromStr;
-use std::io::{BufRead, BufReader, Read, Seek};
-use zip::ZipArchive;
-use quick_csv::{Csv, Row};
-use chrono::{UTC, DateTime};
-use transit::{TransitFeed, Transit, Agency, LocationType, WheelchairBoarding, Stop, PickupType, DropoffType, Timepoint, StopTime, TimeOffset, Route, Trip, Shape};
+use std::io::BufRead;
+use quick_csv::Csv;
+use transit::{Agency, LocationType, WheelchairBoarding, Stop, PickupType, DropoffType, Timepoint, StopTime, TimeOffset};
 use error::GtfsError;
 
 /// Type alias for Gtfs Results
 pub type GtfsResult<T> = Result<T, GtfsError>;
-
-/// GtfsDecoder allows iterative decoding of various parts of a GTFS data set
-pub struct GtfsDecoder<R: Read+Seek> {
-    transit: Transit,
-    archive: ZipArchive<R>
-}
-
-impl<R: Read+Seek> GtfsDecoder<R> {
-    /// Decode a GTFS data set from a Zip Archive
-    pub fn from_reader(reader: R) -> GtfsResult<GtfsDecoder<R>> {
-        // TODO calculate the blake hash for the raw data, take transit_id
-        let transit_id: i64 = 0;
-        let mut archive = try!(ZipArchive::new(reader));
-        Ok(GtfsDecoder {
-            transit: Transit {
-                id: 0,
-                hashsum: String::from(""),
-                name: String::from("unnamed"),
-                created: UTC::now(),
-            },
-            archive: archive,
-        })
-    }
-}
-
-impl<R: Read+Seek> TransitFeed<GtfsError> for GtfsDecoder<R> {
-    fn id(&self) -> i64 {
-        self.transit.id
-    }
-
-    fn name(&self) -> &str {
-        &self.transit.name
-    }
-
-    fn hashsum(&self) -> &str {
-        &self.transit.hashsum
-    }
-
-    fn created(&self) -> DateTime<UTC> {
-        self.transit.created.clone()
-    }
-
-    /*
-    fn agencies(&self) -> GtfsResult<Box<Iterator<Item=Agency>>> {
-        let agencies_reader = self.archive.by_name("agency.txt").unwrap();
-        let buf_reader = BufReader::new(agencies_reader);
-        let agencies_csv = Csv::from_reader(buf_reader);
-        Ok(Box::new(try!(AgencyDecoder::new(self.transit.id, agencies_csv))))
-    }
-
-    fn stops(&self) -> Iterator<Item=Stop> {
-        let stops_reader = self.archive.by_name("stops.txt").unwrap();
-        StopDecoder::new(self.transit.id, stops_reader)
-    }
-
-    fn stop_times(&self) -> Iterator<Item=Stop> {
-        let stop_times_reader = self.archive.by_name("stop_times.txt").unwrap();
-        StopTimeDecoder::new(self.transit.id, stop_times_reader)
-    }
-    */
-
-}
-
 
 /// Parse an Integer with line and file numbers given for error reporting
 fn parse_int<T: FromStr>(line: usize, file: &str, val: &str) -> GtfsResult<T> {
@@ -200,7 +134,7 @@ impl<B: BufRead> Iterator for AgencyDecoder<B> {
             Some(res) => match res {
                 Ok(row) => match row.columns() {
                     Ok(columns) =>  {
-                        let filename = "agency.txt";
+                        //let filename = "agency.txt";
                         let mut agency_id = None;
                         let mut agency_name = String::new();
                         let mut agency_url = String::new();
@@ -386,7 +320,7 @@ impl<B: BufRead> Iterator for StopTimeDecoder<B> {
                         let mut pickup_type = PickupType::RegularlyScheduled;
                         let mut dropoff_type = DropoffType::RegularlyScheduled;
                         let mut shape_dist_traveled = None;
-                        let mut timepoint = Timepoint::Exact;
+                        let timepoint = Timepoint::Exact;
                         let filename = "stop_times.txt";
                         for (header, column) in self.headers.iter().zip(columns) {
                             match &header[..] {

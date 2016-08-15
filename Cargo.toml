@@ -10,6 +10,7 @@ keywords = ["transit", "gtfs", "transitfeed"]
 [dependencies]
 zip = "0.1"
 quick-csv = "0.1"
+rust-crypto = "^0.2"
 
 [dependencies.chrono]
 version = "0.2"

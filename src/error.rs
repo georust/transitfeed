@@ -1,12 +1,10 @@
 use std::error;
 use std::fmt;
-use zip::result::ZipError;
 use quick_csv::error::{Error as CsvError};
 
 
 #[derive(Debug)]
 pub enum GtfsError {
-    Zip(ZipError),
     Csv(CsvError),
     CsvHeader(String),
     ParseInt(usize, String, String),
@@ -31,11 +29,5 @@ impl error::Error for GtfsError {
 
     fn cause(&self) -> Option<&error::Error> {
         None
-    }
-}
-
-impl From<ZipError> for GtfsError {
-    fn from(e: ZipError) -> GtfsError {
-        GtfsError::Zip(e)
     }
 }

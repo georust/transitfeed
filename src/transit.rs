@@ -1,38 +1,4 @@
-use std::error::Error;
-use chrono::{Duration, DateTime, UTC, NaiveDate};
-
-/// TransitFeed provides functionality to access the raw transit data in a variety
-/// of ways. It may internally index the sets of data it has.
-/// This closely relates to the structure of GTFS. In essence we want to
-/// be able to serialize/deserialize transit to/from GTFS and Other sources
-/// with a uniform interface being provided by them for easier transformation.
-pub trait TransitFeed<E: Error> {
-    fn id(&self) -> i64;
-    fn name(&self) -> &str;
-    fn hashsum(&self) -> &str;
-    fn created(&self) -> DateTime<UTC>;
-    //fn agencies(&self) -> Result<Box<Iterator<Item=Agency>>, E>;
-    //fn stops(&self) -> Result<Iterator<Item=Stop>, E>;
-    //fn routes(&self) -> Iterator<Item=Route>;
-    //fn trips(&self) -> Iterator<Item=Trip>;
-    //fn stop_times(&self) -> Result<Iterator<Item=StopTime>, E>;
-    //fn calendar(&self) -> Iterator<Item=Calendar>;
-    //fn calendar_dates(&self) -> Iterator<Item=CalendarDate>;
-    //fn fare_attributes(&self) -> Iterator<Item=FareAttribute>;
-    //fn fare_rules(&self) -> Iterator<Item=FareRule>;
-    //fn shapes(&self) -> Iterator<Item=Shape>;
-    //fn frequencies(&self) -> Iterator<Item=Frequency>;
-    //fn transfers(&self) -> Iterator<Item=Transfer>;
-    //fn feed_info(&self) -> Iterator<Item=FeedInfo>;
-}
-
-/// Transit Model
-pub struct Transit {
-    pub id: i64,
-    pub hashsum: String,
-    pub name: String,
-    pub created: DateTime<UTC>,
-}
+use chrono::{Duration, NaiveDate};
 
 /// Agency
 pub struct Agency {
