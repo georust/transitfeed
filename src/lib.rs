@@ -1,4 +1,4 @@
-//! TransitFeed provides a consistent set of datastructures, parsers,
+//! Transit Feed provides a consistent set of data structures, parsers,
 //! and API clients for obtaining usable transit related information
 //! such as routes, stop, trips, stop times, and more.
 
@@ -7,7 +7,6 @@ extern crate chrono;
 
 mod transit;
 mod gtfs;
-mod error;
 
 pub use transit::*;
-pub use gtfs::{AgencyDecoder, StopDecoder, StopTimeDecoder};
+pub use gtfs::{AgencyIterator, StopIterator, StopTimeIterator};

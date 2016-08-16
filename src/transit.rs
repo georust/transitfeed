@@ -1,8 +1,14 @@
+use std::error::Error;
 use chrono::{Duration, NaiveDate};
+
+/// Transit trait defines methods for iterating over components of a Transit
+/// system
+pub trait Transit<E: Error, AgencyIterator: Iterator<Item=Result<Agency, E>>> {
+    fn agencies() -> AgencyIterator;
+}
 
 /// Agency
 pub struct Agency {
-    pub transit_id: i64,
     pub agency_id: Option<String>,
     pub agency_name: String,
     pub agency_url: String,
@@ -28,7 +34,6 @@ pub enum WheelchairBoarding {
 
 /// Stop
 pub struct Stop {
-    pub transit_id: i64,
     pub stop_id: String,
     pub stop_code: Option<String>,
     pub stop_name: String,
@@ -57,7 +62,6 @@ pub enum RouteType {
 
 /// Route
 pub struct Route {
-    pub transit_id: i64,
     pub route_id: String,
     pub agency_id: Option<String>,
     pub route_short_name: String,
@@ -85,7 +89,6 @@ pub enum BikesAllowed {
 
 /// Trip
 pub struct Trip {
-    pub transit_id: i64,
     pub route_id: String,
     pub service_id: String,
     pub trip_id: String,
@@ -150,7 +153,6 @@ impl TimeOffset {
 /// StopTime
 #[derive(Debug)]
 pub struct StopTime {
-    pub transit_id: i64,
     pub trip_id: String,
     pub arrival_time: TimeOffset,
     pub departure_time: TimeOffset,
@@ -165,7 +167,6 @@ pub struct StopTime {
 
 /// Calendar
 pub struct Calendar {
-    pub transit_id: i64,
     pub service_id: String,
     pub monday: bool,
     pub tuesday: bool,
@@ -186,7 +187,6 @@ pub enum ExceptionType {
 
 /// CalendarDate
 pub struct CalendarDate {
-    pub transit_id: i64,
     pub service_id: String,
     pub date: NaiveDate,
     pub exception_type: ExceptionType
@@ -209,7 +209,6 @@ pub enum Transfers {
 
 /// FareAttribute
 pub struct FareAttribute {
-    pub transit_id: i64,
     pub fare_id: String,
     pub price: f64,
     pub currency_type: String,
@@ -221,7 +220,6 @@ pub struct FareAttribute {
 /// FareRule
 /// origin, destination, and contains reference a zone_id from stops
 pub struct FareRule {
-    pub transit_id: i64,
     pub fare_id: String,
     pub route_id: Option<String>,
     pub origin_id: Option<String>,
@@ -231,7 +229,6 @@ pub struct FareRule {
 
 /// Shape
 pub struct Shape {
-    pub transit_id: i64,
     pub shape_id: String,
     pub shape_pt_lat: f64,
     pub shape_pt_lon: f64,

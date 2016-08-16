@@ -31,3 +31,6 @@ impl error::Error for GtfsError {
         None
     }
 }
+
+/// Type alias for Gtfs Results
+pub type GtfsResult<T> = Result<T, GtfsError>;

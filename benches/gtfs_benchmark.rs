@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::{AgencyDecoder, StopDecoder, StopTimeDecoder};
+use transitfeed::{AgencyIterator, StopIterator, StopTimeIterator};
 
 static AGENCY_DATA: &'static str = "./examples/agency.txt";
 static STOP_DATA: &'static str = "./examples/stop_times.txt";
@@ -31,7 +31,7 @@ fn bench_agency_decoder(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = AgencyDecoder::new(0, csv).unwrap();
+        let decoder = AgencyIterator::new(csv).unwrap();
         for agency in decoder {
             let _ = agency;
         }
@@ -44,7 +44,7 @@ fn bench_stop_decoder(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = StopDecoder::new(0, csv).unwrap();
+        let decoder = StopIterator::new(csv).unwrap();
         for stop in decoder {
             let _ = stop;
         }
@@ -57,7 +57,7 @@ fn bench_stop_time_decoder(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = StopTimeDecoder::new(0, csv).unwrap();
+        let decoder = StopTimeIterator::new(csv).unwrap();
         for stop_time in decoder {
             let _ = stop_time;
         }
