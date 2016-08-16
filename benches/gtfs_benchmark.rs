@@ -8,11 +8,12 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::{AgencyIterator, StopIterator, StopTimeIterator};
+use transitfeed::{AgencyIterator, RouteIterator, StopIterator, StopTimeIterator};
 
-static AGENCY_DATA: &'static str = "./examples/agency.txt";
-static STOP_DATA: &'static str = "./examples/stop_times.txt";
-static STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
+const AGENCY_DATA: &'static str = "./examples/agency.txt";
+const ROUTE_DATA: &'static str = "./examples/routes.txt";
+const STOP_DATA: &'static str = "./examples/stops.txt";
+const STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -34,6 +35,19 @@ fn bench_agency_decoder(b: &mut Bencher) {
         let decoder = AgencyIterator::new(csv).unwrap();
         for agency in decoder {
             let _ = agency;
+        }
+    })
+}
+
+#[bench]
+fn bench_route_decoder(b: &mut Bencher) {
+    let data = file_to_mem(ROUTE_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let decoder = RouteIterator::new(csv).unwrap();
+        for route in decoder {
+            let _ = route;
         }
     })
 }

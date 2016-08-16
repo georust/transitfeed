@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType, TimeOffset};
+use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType, TimeOffset, RouteType};
 use gtfs::error::{GtfsError, GtfsResult};
 
 
@@ -83,6 +83,15 @@ pub fn parse_wheelchair_boarding(line: usize, file: &str, val: &str) -> GtfsResu
         "1" => Ok(WheelchairBoarding::SomeAccessibility),
         "2" => Ok(WheelchairBoarding::NoAccessibility),
         _ => Err(GtfsError::ParseWheelchairBoarding(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Takes a &str containing route type information for gtfs and returns a
+/// `RouteType` enum.
+pub fn parse_route_type(line: usize, file: &str, val: &str) -> GtfsResult<RouteType> {
+    let trimmed = val.trim();
+    match trimmed {
+        _ => Err(GtfsError::ParseRouteType(line, String::from(file), String::from(val))),
     }
 }
 

@@ -9,4 +9,4 @@ mod transit;
 mod gtfs;
 
 pub use transit::*;
-pub use gtfs::{AgencyIterator, StopIterator, StopTimeIterator};
+pub use gtfs::{AgencyIterator, RouteIterator, StopIterator, StopTimeIterator};
