@@ -1,5 +1,6 @@
 use std::str::FromStr;
-use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType, TimeOffset, RouteType};
+use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType,
+    TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
 use gtfs::error::{GtfsError, GtfsResult};
 
 
@@ -94,6 +95,25 @@ pub fn parse_route_type(line: usize, file: &str, val: &str) -> GtfsResult<RouteT
         _ => Err(GtfsError::ParseRouteType(line, String::from(file), String::from(val))),
     }
 }
+
+/// Takes a &str containing wheelchair accessibility information for gtfs and return a
+/// `WheelchairAccessible` enum.
+pub fn parse_wheelchair_accessible(line: usize, file: &str, val: &str) -> GtfsResult<WheelchairAccessible> {
+    let trimmed = val.trim();
+    match trimmed {
+        _ => Err(GtfsError::ParseWheelchairAccessible(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Takes a &str containing bikes allowed information for gtfs and return a
+/// `BikesAllowed` enum.
+pub fn parse_bikes_allowed(line: usize, file: &str, val: &str) -> GtfsResult<BikesAllowed> {
+    let trimmed = val.trim();
+    match trimmed {
+        _ => Err(GtfsError::ParseBikesAllowed(line, String::from(file), String::from(val))),
+    }
+}
+
 
 macro_rules! parse_try {
     ( $e:expr ) => {

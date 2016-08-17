@@ -15,6 +15,8 @@ pub enum GtfsError {
     ParsePickupType(usize, String, String),
     ParseDropoffType(usize, String, String),
     ParseRouteType(usize, String, String),
+    ParseWheelchairAccessible(usize, String, String),
+    ParseBikesAllowed(usize, String, String),
 }
 
 impl fmt::Display for GtfsError {
