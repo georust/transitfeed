@@ -4,6 +4,7 @@
 
 extern crate quick_csv;
 extern crate chrono;
+extern crate zip;
 
 mod transit;
 mod gtfs;

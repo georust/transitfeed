@@ -7,11 +7,9 @@ version = "0.1.4"
 authors = ["Tom Burdick <thomas.burdick@gmail.com>"]
 keywords = ["transit", "gtfs", "transitfeed"]
 
-[dev-dependencies]
-zip = "0.1"
-
 [dependencies]
 quick-csv = "0.1"
+zip = "0.1"
 
 [dependencies.chrono]
 version = "0.2"

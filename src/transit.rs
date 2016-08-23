@@ -3,8 +3,10 @@ use chrono::{Duration, NaiveDate};
 
 /// Transit trait defines methods for iterating over components of a Transit
 /// system
-pub trait Transit<E: Error, AgencyIterator: Iterator<Item=Result<Agency, E>>> {
-    fn agencies() -> AgencyIterator;
+pub trait Transit<'a, E: Error> {
+    type AgencyIterator: Iterator<Item=Result<Agency, E>>;
+
+    fn agencies(&'a self) -> Self::AgencyIterator;
 }
 
 /// Agency
