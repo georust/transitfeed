@@ -8,12 +8,14 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::{AgencyIterator, RouteIterator, StopIterator, StopTimeIterator};
+use transitfeed::{AgencyIterator, RouteIterator, ShapeIterator, StopIterator, StopTimeIterator, TripIterator};
 
 const AGENCY_DATA: &'static str = "./examples/agency.txt";
 const ROUTE_DATA: &'static str = "./examples/routes.txt";
+const SHAPE_DATA: &'static str = "./examples/shapes.txt";
 const STOP_DATA: &'static str = "./examples/stops.txt";
 const STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
+const TRIP_DATA: &'static str = "./examples/trips.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -27,53 +29,79 @@ fn file_to_mem(fp: &str) -> Vec<u8> {
 }
 
 #[bench]
-fn bench_agency_decoder(b: &mut Bencher) {
+fn bench_agency_iterator(b: &mut Bencher) {
     let data = file_to_mem(AGENCY_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = AgencyIterator::new(csv).unwrap();
-        for agency in decoder {
+        let iterator = AgencyIterator::new(csv).unwrap();
+        for agency in iterator {
             let _ = agency;
         }
     })
 }
 
 #[bench]
-fn bench_route_decoder(b: &mut Bencher) {
+fn bench_route_iterator(b: &mut Bencher) {
     let data = file_to_mem(ROUTE_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = RouteIterator::new(csv).unwrap();
-        for route in decoder {
+        let iterator = RouteIterator::new(csv).unwrap();
+        for route in iterator {
             let _ = route;
         }
     })
 }
 
 #[bench]
-fn bench_stop_decoder(b: &mut Bencher) {
+fn bench_shape_iterator(b: &mut Bencher) {
+    let data = file_to_mem(SHAPE_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let iterator = ShapeIterator::new(csv).unwrap();
+        for shape in iterator {
+            let _ = shape;
+        }
+    })
+}
+
+#[bench]
+fn bench_stop_iterator(b: &mut Bencher) {
     let data = file_to_mem(STOP_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = StopIterator::new(csv).unwrap();
-        for stop in decoder {
+        let iterator = StopIterator::new(csv).unwrap();
+        for stop in iterator {
             let _ = stop;
         }
     })
 }
 
 #[bench]
-fn bench_stop_time_decoder(b: &mut Bencher) {
+fn bench_stop_time_iterator(b: &mut Bencher) {
     let data = file_to_mem(STOP_TIMES_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let decoder = StopTimeIterator::new(csv).unwrap();
-        for stop_time in decoder {
+        let iterator = StopTimeIterator::new(csv).unwrap();
+        for stop_time in iterator {
             let _ = stop_time;
+        }
+    })
+}
+
+#[bench]
+fn bench_trip_iterator(b: &mut Bencher) {
+    let data = file_to_mem(TRIP_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let iterator = TripIterator::new(csv).unwrap();
+        for trip in iterator {
+            let _ = trip;
         }
     })
 }
