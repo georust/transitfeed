@@ -103,6 +103,21 @@ pub struct Trip {
     pub bikes_allowed: BikesAllowed,
 }
 
+/// exact_times for Frequency
+pub enum FrequencyAccuracy {
+    Approximate,
+    Exact
+}
+
+/// Frequency
+pub struct Frequency {
+    pub trip_id: String,
+    pub start_time: TimeOffset,
+    pub end_time: TimeOffset,
+    pub headway_secs: u64,
+    pub exact_times: FrequencyAccuracy,
+}
+
 /// PickupType for `StopTime`
 #[derive(Debug)]
 pub enum PickupType {

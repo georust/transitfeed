@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType,
+use transit::{LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType, DropoffType,
     TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
 use gtfs::error::{GtfsError, GtfsResult};
 
@@ -20,6 +20,15 @@ pub fn parse_float<T: FromStr>(line: usize, file: &str, val: &str) -> GtfsResult
     }
 }
 
+/// Parse a frequencie exact_times field. Returns true when times are exactly scheduled
+pub fn parse_exact_times(line: usize, file: &str, val: &str) -> GtfsResult<FrequencyAccuracy> {
+    let trimmed = val.trim();
+    match trimmed {
+        "0" => Ok(FrequencyAccuracy::Approximate),
+        "1" => Ok(FrequencyAccuracy::Exact),
+        _ => Err(GtfsError::ParseExactTimes(line, String::from(file), String::from(val))),
+    }
+}
 
 /// Takes a &str containing an arrival/departure time for gtfs and returns
 /// a naivetime. Chrono's NaiveTime parser is relatively slow and doesn't

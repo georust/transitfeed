@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::{AgencyIterator, RouteIterator, ShapeIterator, StopIterator, StopTimeIterator, TripIterator};
+use transitfeed::{AgencyIterator, RouteIterator, ShapeIterator, StopIterator, StopTimeIterator, TripIterator, FrequencyIterator};
 
 const AGENCY_DATA: &'static str = "./examples/agency.txt";
 const ROUTE_DATA: &'static str = "./examples/routes.txt";
@@ -16,6 +16,7 @@ const SHAPE_DATA: &'static str = "./examples/shapes.txt";
 const STOP_DATA: &'static str = "./examples/stops.txt";
 const STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
 const TRIP_DATA: &'static str = "./examples/trips.txt";
+const FREQUENCY_DATA: &'static str = "./examples/frequencies.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -102,6 +103,19 @@ fn bench_trip_iterator(b: &mut Bencher) {
         let iterator = TripIterator::new(csv).unwrap();
         for trip in iterator {
             let _ = trip;
+        }
+    })
+}
+
+#[bench]
+fn bench_frequency_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FREQUENCY_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let iterator = FrequencyIterator::new(csv).unwrap();
+        for freq in iterator {
+            let _ = freq;
         }
     })
 }

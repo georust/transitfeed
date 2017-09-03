@@ -12,6 +12,7 @@ pub enum GtfsError {
     ParseTime(usize, String, String),
     ParseLocationType(usize, String, String),
     ParseWheelchairBoarding(usize, String, String),
+    ParseExactTimes(usize, String, String),
     ParsePickupType(usize, String, String),
     ParseDropoffType(usize, String, String),
     ParseRouteType(usize, String, String),
