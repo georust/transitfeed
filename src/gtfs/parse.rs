@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use chrono::NaiveDate;
 use transit::{LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType, DropoffType,
     TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
 use gtfs::error::{GtfsError, GtfsResult};
@@ -20,6 +21,16 @@ pub fn parse_float<T: FromStr>(line: usize, file: &str, val: &str) -> GtfsResult
     }
 }
 
+/// Parse a day of week service bit
+pub fn parse_dow(line: usize, file: &str, val: &str) -> GtfsResult<bool>
+{
+    match val.parse::<u32>() {
+        Ok(0) => Ok(false),
+        Ok(1) => Ok(true),
+        Ok(_) | Err(_) => Err(GtfsError::ParseInt(line, String::from(file), String::from(val))),
+    }
+}
+
 /// Parse a frequencie exact_times field. Returns true when times are exactly scheduled
 pub fn parse_exact_times(line: usize, file: &str, val: &str) -> GtfsResult<FrequencyAccuracy> {
     let trimmed = val.trim();
@@ -27,6 +38,15 @@ pub fn parse_exact_times(line: usize, file: &str, val: &str) -> GtfsResult<Frequ
         "0" => Ok(FrequencyAccuracy::Approximate),
         "1" => Ok(FrequencyAccuracy::Exact),
         _ => Err(GtfsError::ParseExactTimes(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Parse a &str containing a date in gtfs and return NaiveDate
+pub fn parse_date(line: usize, file: &str, val: &str) -> GtfsResult<NaiveDate>
+{
+    match NaiveDate::parse_from_str(val, "%Y%m%d") {
+        Ok(d) => Ok(d),
+        Err(_) => Err(GtfsError::ParseDate(line, String::from(file), String::from(val)))
     }
 }
 

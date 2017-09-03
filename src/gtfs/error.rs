@@ -9,6 +9,7 @@ pub enum GtfsError {
     CsvHeader(String),
     ParseInt(usize, String, String),
     ParseFloat(usize, String, String),
+    ParseDate(usize, String, String),
     ParseTime(usize, String, String),
     ParseLocationType(usize, String, String),
     ParseWheelchairBoarding(usize, String, String),

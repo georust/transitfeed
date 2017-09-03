@@ -21,6 +21,33 @@ pub struct Agency {
     pub agency_email: Option<String>,
 }
 
+/// Calendar
+pub struct Calendar {
+    pub service_id: String,
+    pub monday: bool,
+    pub tuesday: bool,
+    pub wednesday: bool,
+    pub thursday: bool,
+    pub friday: bool,
+    pub saturday: bool,
+    pub sunday: bool,
+    pub start_date: NaiveDate,
+    pub end_date: NaiveDate,
+}
+
+/// ExceptionType for `CalendarDate`
+pub enum ExceptionType {
+    ServiceAdded,
+    ServiceRemoved,
+}
+
+/// CalendarDate
+pub struct CalendarDate {
+    pub service_id: String,
+    pub date: NaiveDate,
+    pub exception_type: ExceptionType
+}
+
 /// Location Type
 pub enum LocationType {
     Stop,
@@ -180,33 +207,6 @@ pub struct StopTime {
     pub dropoff_type: DropoffType,
     pub shape_dist_traveled: Option<f64>,
     pub timepoint: Timepoint,
-}
-
-/// Calendar
-pub struct Calendar {
-    pub service_id: String,
-    pub monday: bool,
-    pub tuesday: bool,
-    pub wednesday: bool,
-    pub thursday: bool,
-    pub friday: bool,
-    pub saturday: bool,
-    pub sunday: bool,
-    pub start_date: NaiveDate,
-    pub end_date: NaiveDate,
-}
-
-/// ExceptionType for `CalendarDate`
-pub enum ExceptionType {
-    ServiceAdded,
-    ServiceRemoved,
-}
-
-/// CalendarDate
-pub struct CalendarDate {
-    pub service_id: String,
-    pub date: NaiveDate,
-    pub exception_type: ExceptionType
 }
 
 /// PaymentMethod for `FareAttribute`
