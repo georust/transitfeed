@@ -12,6 +12,7 @@ use transitfeed::{AgencyIterator, CalendarIterator, RouteIterator, ShapeIterator
 
 const AGENCY_DATA: &'static str = "./examples/agency.txt";
 const CALENDAR_DATA: &'static str = "./examples/calendar.txt";
+const CALENDAR_DATE_DATA: &'static str = "./examples/calendar_dates.txt";
 const ROUTE_DATA: &'static str = "./examples/routes.txt";
 const SHAPE_DATA: &'static str = "./examples/shapes.txt";
 const STOP_DATA: &'static str = "./examples/stops.txt";
@@ -52,6 +53,19 @@ fn bench_calendar_iterator(b: &mut Bencher) {
         let iterator = CalendarIterator::new(csv).unwrap();
         for calendar in iterator {
             let _ = calendar;
+        }
+    })
+}
+
+#[bench]
+fn bench_calendar_date_iterator(b: &mut Bencher) {
+    let data = file_to_mem(CALENDAR_DATE_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let iterator = CalendarIterator::new(csv).unwrap();
+        for calendar_date in iterator {
+            let _ = calendar_date;
         }
     })
 }

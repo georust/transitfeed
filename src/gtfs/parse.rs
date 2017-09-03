@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use chrono::NaiveDate;
-use transit::{LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType, DropoffType,
-    TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
+use transit::{ExceptionType, LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType,
+              DropoffType, TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
 use gtfs::error::{GtfsError, GtfsResult};
 
 
@@ -27,6 +27,16 @@ pub fn parse_dow(line: usize, file: &str, val: &str) -> GtfsResult<bool>
     match val.parse::<u32>() {
         Ok(0) => Ok(false),
         Ok(1) => Ok(true),
+        Ok(_) | Err(_) => Err(GtfsError::ParseInt(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Parse a CalendarDate ExceptionType
+pub fn parse_exceptiontype(line: usize, file: &str, val: &str) -> GtfsResult<ExceptionType>
+{
+    match val.parse::<u32>() {
+        Ok(1) => Ok(ExceptionType::ServiceAdded),
+        Ok(2) => Ok(ExceptionType::ServiceRemoved),
         Ok(_) | Err(_) => Err(GtfsError::ParseInt(line, String::from(file), String::from(val))),
     }
 }
