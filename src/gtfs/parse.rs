@@ -1,6 +1,7 @@
 use std::str::FromStr;
-use transit::{LocationType, WheelchairBoarding, PickupType, DropoffType,
-    TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
+use chrono::NaiveDate;
+use transit::{ExceptionType, LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType,
+              DropoffType, TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
 use gtfs::error::{GtfsError, GtfsResult};
 
 
@@ -20,6 +21,44 @@ pub fn parse_float<T: FromStr>(line: usize, file: &str, val: &str) -> GtfsResult
     }
 }
 
+/// Parse a day of week service bit
+pub fn parse_dow(line: usize, file: &str, val: &str) -> GtfsResult<bool>
+{
+    match val.parse::<u32>() {
+        Ok(0) => Ok(false),
+        Ok(1) => Ok(true),
+        Ok(_) | Err(_) => Err(GtfsError::ParseInt(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Parse a CalendarDate ExceptionType
+pub fn parse_exceptiontype(line: usize, file: &str, val: &str) -> GtfsResult<ExceptionType>
+{
+    match val.parse::<u32>() {
+        Ok(1) => Ok(ExceptionType::ServiceAdded),
+        Ok(2) => Ok(ExceptionType::ServiceRemoved),
+        Ok(_) | Err(_) => Err(GtfsError::ParseInt(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Parse a frequencie exact_times field. Returns true when times are exactly scheduled
+pub fn parse_exact_times(line: usize, file: &str, val: &str) -> GtfsResult<FrequencyAccuracy> {
+    let trimmed = val.trim();
+    match trimmed {
+        "0" => Ok(FrequencyAccuracy::Approximate),
+        "1" => Ok(FrequencyAccuracy::Exact),
+        _ => Err(GtfsError::ParseExactTimes(line, String::from(file), String::from(val))),
+    }
+}
+
+/// Parse a &str containing a date in gtfs and return NaiveDate
+pub fn parse_date(line: usize, file: &str, val: &str) -> GtfsResult<NaiveDate>
+{
+    match NaiveDate::parse_from_str(val, "%Y%m%d") {
+        Ok(d) => Ok(d),
+        Err(_) => Err(GtfsError::ParseDate(line, String::from(file), String::from(val)))
+    }
+}
 
 /// Takes a &str containing an arrival/departure time for gtfs and returns
 /// a naivetime. Chrono's NaiveTime parser is relatively slow and doesn't
