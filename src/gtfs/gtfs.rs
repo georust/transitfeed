@@ -1,10 +1,5 @@
-use std::error::Error;
-use std::io::{BufRead, Read, Seek};
+use std::io::{Read, Seek};
 use zip::ZipArchive;
-use quick_csv::Csv;
-use transit::Transit;
-use gtfs::error::GtfsError;
-use gtfs::{AgencyIterator, RouteIterator, StopIterator};
 
 pub struct GTFS<R: Read+Seek> {
     raw: R,

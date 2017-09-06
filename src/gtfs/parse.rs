@@ -82,6 +82,7 @@ pub fn parse_timeoffset(line: usize, file: &str, val: &str) -> GtfsResult<TimeOf
 pub fn parse_pickup_type(line: usize, file: &str, val: &str) -> GtfsResult<PickupType> {
     let trimmed = val.trim();
     match trimmed {
+        "" => Ok(PickupType::RegularlyScheduled),
         "0" => Ok(PickupType::RegularlyScheduled),
         "1" => Ok(PickupType::NoPickupAvailable),
         "2" => Ok(PickupType::MustPhoneAgency),
@@ -95,6 +96,7 @@ pub fn parse_pickup_type(line: usize, file: &str, val: &str) -> GtfsResult<Picku
 pub fn parse_dropoff_type(line: usize, file: &str, val: &str) -> GtfsResult<DropoffType> {
     let trimmed = val.trim();
     match trimmed {
+        "" => Ok(DropoffType::RegularlyScheduled),
         "0" => Ok(DropoffType::RegularlyScheduled),
         "1" => Ok(DropoffType::NoDropoffAvailable),
         "2" => Ok(DropoffType::MustPhoneAgency),
@@ -162,6 +164,16 @@ macro_rules! parse_try {
         }
     }
 }
+
+macro_rules! parse_try2 {
+    ( $e:expr ) => {
+        match $e {
+            Ok(x) => x,
+            Err(e) => return Err(e),
+        }
+    }
+}
+
 
 #[test]
 fn parse_timeoffset_test() {

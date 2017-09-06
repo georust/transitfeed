@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use quick_csv::Csv;
-use transitfeed::{AgencyIterator, CalendarIterator, RouteIterator, ShapeIterator, StopIterator, StopTimeIterator, TripIterator, FrequencyIterator};
+use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies, routes, shapes, stops, stop_times, trips};
 
 const AGENCY_DATA: &'static str = "./examples/agency.txt";
 const CALENDAR_DATA: &'static str = "./examples/calendar.txt";
@@ -37,7 +37,7 @@ fn bench_agency_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = AgencyIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "agency.txt".to_string(), agencies::parse_row).unwrap();
         for agency in iterator {
             let _ = agency;
         }
@@ -50,7 +50,7 @@ fn bench_calendar_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = CalendarIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "calendar.txt".to_string(), calendars::parse_row).unwrap();
         for calendar in iterator {
             let _ = calendar;
         }
@@ -63,9 +63,22 @@ fn bench_calendar_date_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = CalendarIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "calendar_dates.txt".to_string(), calendar_dates::parse_row).unwrap();
         for calendar_date in iterator {
             let _ = calendar_date;
+        }
+    })
+}
+
+#[bench]
+fn bench_frequency_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FREQUENCY_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Csv::from_reader(&*data);
+        let iterator = GTFSIterator::new(csv, "frequencies.txt".to_string(), frequencies::parse_row).unwrap();
+        for freq in iterator {
+            let _ = freq;
         }
     })
 }
@@ -76,7 +89,7 @@ fn bench_route_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = RouteIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "routes.txt".to_string(), routes::parse_row).unwrap();
         for route in iterator {
             let _ = route;
         }
@@ -89,7 +102,7 @@ fn bench_shape_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = ShapeIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "shapes.txt".to_string(), shapes::parse_row).unwrap();
         for shape in iterator {
             let _ = shape;
         }
@@ -102,7 +115,7 @@ fn bench_stop_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = StopIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "stops.txt".to_string(), stops::parse_row).unwrap();
         for stop in iterator {
             let _ = stop;
         }
@@ -115,7 +128,7 @@ fn bench_stop_time_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = StopTimeIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "stop_times.txt".to_string(), stop_times::parse_row).unwrap();
         for stop_time in iterator {
             let _ = stop_time;
         }
@@ -128,22 +141,9 @@ fn bench_trip_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Csv::from_reader(&*data);
-        let iterator = TripIterator::new(csv).unwrap();
+        let iterator = GTFSIterator::new(csv, "trips.txt".to_string(), trips::parse_row).unwrap();
         for trip in iterator {
             let _ = trip;
-        }
-    })
-}
-
-#[bench]
-fn bench_frequency_iterator(b: &mut Bencher) {
-    let data = file_to_mem(FREQUENCY_DATA);
-    b.bytes = data.len() as u64;
-    b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = FrequencyIterator::new(csv).unwrap();
-        for freq in iterator {
-            let _ = freq;
         }
     })
 }
