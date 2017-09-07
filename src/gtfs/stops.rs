@@ -2,11 +2,11 @@ use transit::{Stop, WheelchairBoarding, LocationType};
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
 use gtfs::parse::{parse_float, parse_location_type, parse_wheelchair_boarding};
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Stop, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Stop, ParseError>
 {
     let mut stop_id = String::new();
     let mut stop_code = None;
@@ -27,14 +27,14 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
             "stop_code" => { stop_code = Some(String::from(column)); },
             "stop_name" => { stop_name = String::from(column); },
             "stop_desc" => { stop_desc = Some(String::from(column)); },
-            "stop_lat" => { stop_lat = parse_try2!(parse_float(line, filename, column)); },
-            "stop_lon" => { stop_lon = parse_try2!(parse_float(line, filename, column)); },
+            "stop_lat" => { stop_lat = parse_try!(parse_float(column)); },
+            "stop_lon" => { stop_lon = parse_try!(parse_float(column)); },
             "zone_id" => { zone_id = Some(String::from(column)); },
             "stop_url" => { stop_url = Some(String::from(column)); },
-            "location_type" => { location_type = parse_try2!(parse_location_type(line, filename, column)); },
+            "location_type" => { location_type = parse_try!(parse_location_type(column)); },
             "parent_station" => { parent_station= Some(String::from(column)); },
             "stop_timezone" => { stop_timezone = Some(String::from(column)); },
-            "wheelchair_boarding" => { wheelchair_boarding = parse_try2!(parse_wheelchair_boarding(line, filename, column)); },
+            "wheelchair_boarding" => { wheelchair_boarding = parse_try!(parse_wheelchair_boarding(column)); },
             _ => (),
         }
     }

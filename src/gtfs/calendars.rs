@@ -2,12 +2,12 @@ use transit::Calendar;
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
 use chrono::NaiveDate;
 use gtfs::parse::{parse_dow, parse_date};
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Calendar, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Calendar, ParseError>
 {
     let mut service_id = String::new();
     let mut monday = false;
@@ -23,15 +23,15 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
     for (header, column) in row {
         match &header[..] {
             "service_id" => { service_id = String::from(column); },
-            "monday" => { monday = parse_try2!(parse_dow(line, &filename, column)); },
-            "tuesday" => { tuesday = parse_try2!(parse_dow(line, &filename, column)); },
-            "wednesday" => { wednesday = parse_try2!(parse_dow(line, &filename, column)); },
-            "thursday" => { thursday = parse_try2!(parse_dow(line, &filename, column)); },
-            "friday" => { friday = parse_try2!(parse_dow(line, &filename, column)); },
-            "saturday" => { saturday = parse_try2!(parse_dow(line, &filename, column)); },
-            "sunday" => { sunday = parse_try2!(parse_dow(line, &filename, column)); },
-            "start_date" => { start_date = parse_try2!(parse_date(line, &filename, column)) }
-            "end_date" => { end_date = parse_try2!(parse_date(line, &filename, column)) }
+            "monday" => { monday = parse_try!(parse_dow(column)); },
+            "tuesday" => { tuesday = parse_try!(parse_dow(column)); },
+            "wednesday" => { wednesday = parse_try!(parse_dow(column)); },
+            "thursday" => { thursday = parse_try!(parse_dow(column)); },
+            "friday" => { friday = parse_try!(parse_dow(column)); },
+            "saturday" => { saturday = parse_try!(parse_dow(column)); },
+            "sunday" => { sunday = parse_try!(parse_dow(column)); },
+            "start_date" => { start_date = parse_try!(parse_date(column)) }
+            "end_date" => { end_date = parse_try!(parse_date(column)) }
             _ => (),
         }
     }

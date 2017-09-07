@@ -2,11 +2,11 @@ use transit::{Trip, BikesAllowed, WheelchairAccessible};
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
 use gtfs::parse::{parse_wheelchair_accessible, parse_bikes_allowed};
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Trip, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Trip, ParseError>
 {
     let mut route_id = String::new();
     let mut service_id = String::new();
@@ -29,8 +29,8 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
             "direction_id" => { direction_id = Some(String::from(column)); },
             "block_id" => { block_id = Some(String::from(column)); },
             "shape_id" => { shape_id = Some(String::from(column)); },
-            "wheelchair_accessible" => { wheelchair_accessible = parse_try2!(parse_wheelchair_accessible(line, filename, column)); },
-            "bikes_allowed" => { bikes_allowed = parse_try2!(parse_bikes_allowed(line, filename, column)); },
+            "wheelchair_accessible" => { wheelchair_accessible = parse_try!(parse_wheelchair_accessible(column)); },
+            "bikes_allowed" => { bikes_allowed = parse_try!(parse_bikes_allowed(column)); },
             _ => (),
         }
     }

@@ -20,11 +20,11 @@ use std::iter::Zip;
 use std::collections::HashMap;
 use quick_csv::Csv;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::{ParseError, GtfsError};
 
 pub struct GTFSIterator<B, F, T>
     where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>, usize, &str) -> Result<T, GtfsError>)
+          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
 {
     csv: Csv<B>,
     filename: String,
@@ -35,7 +35,7 @@ pub struct GTFSIterator<B, F, T>
 
 impl<B, F, T> GTFSIterator<B, F, T>
     where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>, usize, &str) -> Result<T, GtfsError>)
+          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
 
 {
     pub fn new(csv: Csv<B>, filename: String, parser: F) -> Result<GTFSIterator<B, F, T>, GtfsError> {
@@ -74,7 +74,7 @@ impl<B, F, T> GTFSIterator<B, F, T>
 
 impl<B, F, T> Iterator for GTFSIterator<B, F, T>
     where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>, usize, &str) -> Result<T, GtfsError>)
+          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
 {
     type Item = Result<T, GtfsError>;
 
@@ -84,14 +84,16 @@ impl<B, F, T> Iterator for GTFSIterator<B, F, T>
             Some(res) => match res {
                 Ok(row) => match row.columns() {
                     Ok(columns) =>  {
-                        let result = (self.parser)(self.header.iter().zip(columns), self.line, &self.filename);
+                        let result = match (self.parser)(self.header.iter().zip(columns)) {
+                            Ok(x) => Some(Ok(x)),
+                            Err(y) => Some(Err(GtfsError::LineParseError(y, self.filename.clone(), self.line))),
+                        };
                         self.line += 1;
-                        //println!("{:?}", stop_time);
-                        Some(result)
+                        result
                     },
-                    Err(err) => Some(Err(GtfsError::Csv(err))),
+                    Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
                 },
-                Err(err) => Some(Err(GtfsError::Csv(err))),
+                Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
             }
         }
     }

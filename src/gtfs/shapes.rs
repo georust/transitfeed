@@ -2,11 +2,11 @@ use transit::Shape;
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
 use gtfs::parse::{parse_int, parse_float};
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Shape, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Shape, ParseError>
 {
     let mut shape_id = String::new();
     let mut shape_pt_lat = 0.0;
@@ -17,10 +17,10 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
     for (header, column) in row {
         match &header[..] {
             "shape_id" => { shape_id = String::from(column); },
-            "shape_pt_lat" => { shape_pt_lat = parse_try2!(parse_float(line, filename, column)); },
-            "shape_pt_lon" => { shape_pt_lon = parse_try2!(parse_float(line, filename, column)); },
-            "shape_pt_sequence" => { shape_pt_sequence = parse_try2!(parse_int(line, filename, column)); },
-            "shape_dist_traveled" => { shape_dist_traveled = parse_try2!(parse_float(line, filename, column)); },
+            "shape_pt_lat" => { shape_pt_lat = parse_try!(parse_float(column)); },
+            "shape_pt_lon" => { shape_pt_lon = parse_try!(parse_float(column)); },
+            "shape_pt_sequence" => { shape_pt_sequence = parse_try!(parse_int(column)); },
+            "shape_dist_traveled" => { shape_dist_traveled = parse_try!(parse_float(column)); },
             _ => (),
         }
     }

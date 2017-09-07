@@ -2,9 +2,9 @@ use transit::Agency;
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Agency, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Agency, ParseError>
 {
     let mut agency_id = None;
     let mut agency_name = String::new();

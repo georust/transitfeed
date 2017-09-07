@@ -3,9 +3,9 @@ use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
 use gtfs::parse::{parse_timeoffset, parse_float, parse_pickup_type, parse_dropoff_type, parse_int};
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<StopTime, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<StopTime, ParseError>
 {
     let mut trip_id = String::new();
     let mut departure_time = TimeOffset::from_hms(0, 0, 0);
@@ -20,14 +20,14 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
     for (header_item, column) in row {
         match &header_item[..] {
             "trip_id" => { trip_id = String::from(column); },
-            "departure_time" => { departure_time = parse_try2!(parse_timeoffset(line, filename, column)); },
-            "arrival_time" => { arrival_time = parse_try2!(parse_timeoffset(line, filename, column)); },
+            "departure_time" => { departure_time = parse_try!(parse_timeoffset(column)); },
+            "arrival_time" => { arrival_time = parse_try!(parse_timeoffset(column)); },
             "stop_id" => { stop_id = String::from(column); },
-            "stop_sequence" => { stop_sequence = parse_try2!(parse_int(line, filename, column)); },
+            "stop_sequence" => { stop_sequence = parse_try!(parse_int(column)); },
             "stop_headsign" => { stop_headsign = Some(String::from(column)) },
-            "pickup_type" => { pickup_type = parse_try2!(parse_pickup_type(line, filename, column)); },
-            "dropoff_type" => { dropoff_type = parse_try2!(parse_dropoff_type(line, filename, column)); },
-            "shape_dist_traveled" => { shape_dist_traveled = Some(parse_float(line, filename, column).unwrap_or(0.0)); }, // # TODO: needs to be None if empty
+            "pickup_type" => { pickup_type = parse_try!(parse_pickup_type(column)); },
+            "dropoff_type" => { dropoff_type = parse_try!(parse_dropoff_type(column)); },
+            "shape_dist_traveled" => { shape_dist_traveled = Some(parse_float(column).unwrap_or(0.0)); }, // # TODO: needs to be None if empty
             _ => (),
         }
     }

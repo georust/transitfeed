@@ -2,11 +2,11 @@ use transit::{Route, RouteType};
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::columns::Columns;
-use gtfs::error::GtfsError;
+use gtfs::error::ParseError;
 
 use gtfs::parse::{parse_route_type};
 
-pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) -> Result<Route, GtfsError>
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Route, ParseError>
 {
     let mut route_id = String::new();
     let mut agency_id = None;
@@ -25,7 +25,7 @@ pub fn parse_row(row: Zip<Iter<String>, Columns>, line: usize, filename:&str) ->
             "route_short_name" => { route_short_name = String::from(column); },
             "route_long_name" => { route_long_name = String::from(column); },
             "route_desc" => { route_desc = Some(String::from(column)); },
-            "route_type" => { route_type = parse_try2!(parse_route_type(line, filename, column)); },
+            "route_type" => { route_type = parse_try!(parse_route_type(column)); },
             "route_url" => { route_url = Some(String::from(column)); },
             "route_color" => { route_color = Some(String::from(column)); },
             "route_text_color" => { route_text_color = Some(String::from(column)); },
