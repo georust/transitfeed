@@ -12,92 +12,9 @@ pub mod stop_times;
 pub mod trips;
 pub mod frequencies;
 
-pub use gtfs::gtfs::GTFS;
+pub use gtfs::gtfs::{GTFS, GTFSIterator};
 
-use std::io::BufRead;
-use std::slice::Iter;
-use std::iter::Zip;
-use std::collections::HashMap;
 use quick_csv::Csv;
-use quick_csv::columns::Columns;
-use gtfs::error::{ParseError, GtfsError};
-
-pub struct GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
-{
-    csv: Csv<B>,
-    filename: String,
-    header: Vec<String>,
-    line: usize,
-    parser: F,
-}
-
-impl<B, F, T> GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
-
-{
-    pub fn new(csv: Csv<B>, filename: String, parser: F) -> Result<GTFSIterator<B, F, T>, GtfsError> {
-        let mut csv = csv.has_header(true);
-        let header = csv.headers();
-        if header.len() == 0 {
-            Err(GtfsError::CsvHeader(filename))
-        } else {
-            Ok(GTFSIterator {
-                csv: csv,
-                parser: parser,
-                header: header,
-                filename: filename,
-                line: 1,
-            })
-        }
-    }
-
-//    pub fn from_path(path: String, filename: &str) -> Result<GTFSIterator<B, F, T>, GtfsError> {
-//        let csv = Csv::from_file(&path).unwrap();
-//        let parsers = match filename {
-//            "agency.txt" => agencies::parse_row,
-//            "calendar.txt" => calendars::parse_row,
-//            "calendar_dates.txt" => calendar_dates::parse_row,
-//            "frequencies.txt" => frequencies::parse_row,
-//            "routes.txt" => routes::parse_row,
-//            "shapes.txt" => shapes::parse_row,
-//            "stops.txt" => stops::parse_row,
-//            "stop_times.txt" => stop_times::parse_row,
-//            "trips.txt" => trips::parse_row,
-//            _ => return Err(GtfsError::CsvHeader(format!("No parser for {}", filename))),
-//        };
-//        GTFSIterator::new(csv, filename.to_string(), parser)
-//    }
-}
-
-impl<B, F, T> Iterator for GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
-{
-    type Item = Result<T, GtfsError>;
-
-    fn next(&mut self) -> Option<Result<T, GtfsError>> {
-        match self.csv.next() {
-            None => None,
-            Some(res) => match res {
-                Ok(row) => match row.columns() {
-                    Ok(columns) =>  {
-                        let result = match (self.parser)(self.header.iter().zip(columns)) {
-                            Ok(x) => Some(Ok(x)),
-                            Err(y) => Some(Err(GtfsError::LineParseError(y, self.filename.clone(), self.line))),
-                        };
-                        self.line += 1;
-                        result
-                    },
-                    Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
-                },
-                Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
-            }
-        }
-    }
-}
 
 #[test]
 fn test_read_agencies() {
