@@ -132,7 +132,15 @@ pub fn parse_wheelchair_boarding(val: &str) -> Result<WheelchairBoarding, ParseE
 /// `RouteType` enum.
 pub fn parse_route_type(val: &str) -> Result<RouteType, ParseError> {
     let trimmed = val.trim();
-    match trimmed {
+    match try!(parse_int(trimmed)) {
+        0 => Ok(RouteType::LightRail),
+        1 => Ok(RouteType::Subway),
+        2 => Ok(RouteType::Rail),
+        3 => Ok(RouteType::Bus),
+        4 => Ok(RouteType::Ferry),
+        5 => Ok(RouteType::CableCar),
+        6 => Ok(RouteType::Gondola),
+        7 => Ok(RouteType::Funicular),
         _ => Err(ParseError::ParseRouteType(String::from(val))),
     }
 }
