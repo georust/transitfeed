@@ -12,4 +12,4 @@ pub mod stop_times;
 pub mod trips;
 pub mod frequencies;
 
-pub use gtfs::gtfs::{GTFS, GTFSIterator};
+pub use gtfs::gtfs::GTFSIterator;

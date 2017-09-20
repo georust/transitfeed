@@ -1,28 +1,10 @@
 use gtfs::error::{ParseError, GtfsError};
-use std::io::{BufRead, Read, Seek};
+use std::io::BufRead;
 use std::iter::Zip;
 use std::slice::Iter;
 use quick_csv::Csv;
 use quick_csv::columns::Columns;
-use zip::ZipArchive;
 
-
-pub struct GTFS<R: Read+Seek> {
-    raw: R,
-    archive: ZipArchive<R>,
-}
-
-
-//impl<'a, E: Error, R: Read+Seek+'a, B: BufRead> Transit<'a, E> for GTFS<R> {
-//    type AgencyIterator = AgencyIterator<'a, B>;
-//
-//    fn agencies(&self) -> AgencyIterator {
-//        let csv = Csv::from_reader(self.archive.by_name("agency.txt").unwrap());
-//        AgencyIterator::new(csv)
-//    }
-//
-//}
-//
 pub struct GTFSIterator<B, F, T>
     where B: BufRead,
           F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
