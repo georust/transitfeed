@@ -10,15 +10,15 @@ use test::Bencher;
 use quick_csv::Csv;
 use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies, routes, shapes, stops, stop_times, trips};
 
-const AGENCY_DATA: &'static str = "./examples/agency.txt";
-const CALENDAR_DATA: &'static str = "./examples/calendar.txt";
-const CALENDAR_DATE_DATA: &'static str = "./examples/calendar_dates.txt";
-const ROUTE_DATA: &'static str = "./examples/routes.txt";
-const SHAPE_DATA: &'static str = "./examples/shapes.txt";
-const STOP_DATA: &'static str = "./examples/stops.txt";
-const STOP_TIMES_DATA: &'static str = "./examples/stop_times.txt";
-const TRIP_DATA: &'static str = "./examples/trips.txt";
-const FREQUENCY_DATA: &'static str = "./examples/frequencies.txt";
+const AGENCY_DATA: &'static str = "./examples/bench/agency.txt";
+const CALENDAR_DATA: &'static str = "./examples/bench/calendar.txt";
+const CALENDAR_DATE_DATA: &'static str = "./examples/bench/calendar_dates.txt";
+const ROUTE_DATA: &'static str = "./examples/bench/routes.txt";
+const SHAPE_DATA: &'static str = "./examples/bench/shapes.txt";
+const STOP_DATA: &'static str = "./examples/bench/stops.txt";
+const STOP_TIMES_DATA: &'static str = "./examples/bench/stop_times.txt";
+const TRIP_DATA: &'static str = "./examples/bench/trips.txt";
+const FREQUENCY_DATA: &'static str = "./examples/bench/frequencies.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()

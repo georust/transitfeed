@@ -6,7 +6,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_agencies() {
-        let csv = Csv::from_file("./examples/agency.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/agency.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "agency.txt".to_string(), agencies::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -15,7 +15,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_calendar_dates() {
-        let csv = Csv::from_file("./examples/calendar_dates.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/calendar_dates.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "calendar_dates.txt".to_string(), calendar_dates::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -24,7 +24,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_calendar() {
-        let csv = Csv::from_file("./examples/calendar.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/calendar.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "calendar.txt".to_string(), calendars::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -33,7 +33,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_frequencies() {
-        let csv = Csv::from_file("./examples/frequencies.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/frequencies.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "frequencies.txt".to_string(), frequencies::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -42,7 +42,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_routes() {
-        let csv = Csv::from_file("./examples/routes.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/routes.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "routes.txt".to_string(), routes::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -51,7 +51,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_shapes() {
-        let csv = Csv::from_file("./examples/shapes.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/shapes.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "shapes.txt".to_string(), shapes::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -60,7 +60,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_stops() {
-        let csv = Csv::from_file("./examples/stops.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/stops.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "stops.txt".to_string(), stops::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
@@ -69,7 +69,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_stop_times() {
-        let csv = Csv::from_file("./examples/stop_times.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/stop_times.txt").unwrap();
         /*let csv = Csv::from_string("trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_time,shape_dist_traveled
                                     STBA,6:00:00,6:00:00,STAGECOACH,1,,,,
                                     STBA,6:20:00,6:20:00,BEATTY_AIRPORT,2,,,,
@@ -106,7 +106,7 @@ use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies
 
     #[test]
     fn test_read_trips() {
-        let csv = Csv::from_file("./examples/trips.txt").unwrap();
+        let csv = Csv::from_file("./examples/bench/trips.txt").unwrap();
         let iterator = GTFSIterator::new(csv, "trips.txt".to_string(), trips::parse_row).unwrap();
         for entry in iterator {
             assert!(entry.is_ok(), format!("{}", entry.err().unwrap()));
