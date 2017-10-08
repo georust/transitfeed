@@ -2,6 +2,7 @@ mod error;
 #[macro_use]
 mod parse;
 mod gtfs;
+mod test_parsing;
 pub mod agencies;
 pub mod calendars;
 pub mod calendar_dates;
