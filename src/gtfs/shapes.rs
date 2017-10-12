@@ -1,74 +1,34 @@
-use std::io::BufRead;
-use quick_csv::Csv;
 use transit::Shape;
+use std::iter::Zip;
+use std::slice::Iter;
+use quick_csv::columns::Columns;
+use gtfs::error::ParseError;
 
 use gtfs::parse::{parse_int, parse_float};
-use gtfs::error::{GtfsResult, GtfsError};
 
-/// An decoder which returns as its iterator output a new `Stop` struct from
-/// a CSV iterator.
-pub struct ShapeIterator<B: BufRead> {
-    csv: Csv<B>,
-    headers: Vec<String>,
-    line: usize,
-}
+pub fn parse_row(row: Zip<Iter<String>, Columns>) -> Result<Shape, ParseError>
+{
+    let mut shape_id = String::new();
+    let mut shape_pt_lat = 0.0;
+    let mut shape_pt_lon = 0.0;
+    let mut shape_pt_sequence = 0;
+    let mut shape_dist_traveled = 0.0;
 
-impl<B: BufRead> ShapeIterator<B> {
-    pub fn new(csv: Csv<B>) -> GtfsResult<ShapeIterator<B>> {
-        let mut csv = csv.has_header(true);
-        let headers = csv.headers();
-        if headers.len() == 0 {
-            Err(GtfsError::CsvHeader(String::from("shapes.txt")))
-        } else {
-            Ok(ShapeIterator {
-                csv: csv,
-                headers: headers,
-                line: 1,
-            })
+    for (header, column) in row {
+        match &header[..] {
+            "shape_id" => { shape_id = String::from(column); },
+            "shape_pt_lat" => { shape_pt_lat = parse_try!(parse_float(column)); },
+            "shape_pt_lon" => { shape_pt_lon = parse_try!(parse_float(column)); },
+            "shape_pt_sequence" => { shape_pt_sequence = parse_try!(parse_int(column)); },
+            "shape_dist_traveled" => { shape_dist_traveled = parse_try!(parse_float(column)); },
+            _ => (),
         }
     }
-}
-
-impl<B: BufRead> Iterator for ShapeIterator<B> {
-    type Item = GtfsResult<Shape>;
-
-    fn next(&mut self) -> Option<GtfsResult<Shape>> {
-        match self.csv.next() {
-            None => None,
-            Some(res) => match res {
-                Ok(row) => match row.columns() {
-                    Ok(columns) =>  {
-                        let filename = "shapes.txt";
-                        let mut shape_id = String::new();
-                        let mut shape_pt_lat = 0.0;
-                        let mut shape_pt_lon = 0.0;
-                        let mut shape_pt_sequence = 0;
-                        let mut shape_dist_traveled = 0.0;
-
-                        for (header, column) in self.headers.iter().zip(columns) {
-                            match &header[..] {
-                                "shape_id" => { shape_id = String::from(column); },
-                                "shape_pt_lat" => { shape_pt_lat = parse_try!(parse_float(self.line, filename, column)); },
-                                "shape_pt_lon" => { shape_pt_lon = parse_try!(parse_float(self.line, filename, column)); },
-                                "shape_pt_sequence" => { shape_pt_sequence = parse_try!(parse_int(self.line, filename, column)); },
-                                "shape_dist_traveled" => { shape_dist_traveled = parse_try!(parse_float(self.line, filename, column)); },
-                                _ => (),
-                            }
-                        }
-                        let shape = Shape {
-                            shape_id: shape_id,
-                            shape_pt_lat: shape_pt_lat,
-                            shape_pt_lon: shape_pt_lon,
-                            shape_pt_sequence: shape_pt_sequence,
-                            shape_dist_traveled: shape_dist_traveled,
-                        };
-                        self.line += 1;
-                        Some(Ok(shape))
-                    },
-                    Err(err) => Some(Err(GtfsError::Csv(err))),
-                },
-                Err(err) => Some(Err(GtfsError::Csv(err))),
-            }
-        }
-    }
+    Ok(Shape {
+        shape_id: shape_id,
+        shape_pt_lat: shape_pt_lat,
+        shape_pt_lon: shape_pt_lon,
+        shape_pt_sequence: shape_pt_sequence,
+        shape_dist_traveled: shape_dist_traveled,
+    })
 }
