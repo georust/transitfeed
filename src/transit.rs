@@ -1,5 +1,6 @@
 use std::error::Error;
 use chrono::{Duration, NaiveDate};
+use gtfs::parse::*;
 
 /// Transit trait defines methods for iterating over components of a Transit
 /// system
@@ -10,7 +11,7 @@ pub trait Transit<'a, E: Error> {
 }
 
 /// Agency
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Agency {
     pub agency_id: Option<String>,
     pub agency_name: String,
@@ -23,17 +24,26 @@ pub struct Agency {
 }
 
 /// Calendar
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Calendar {
     pub service_id: String,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub monday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub tuesday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub wednesday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub thursday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub friday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub saturday: bool,
+    #[serde(deserialize_with = "deserialize_dow_field")]
     pub sunday: bool,
+    #[serde(deserialize_with = "deserialize_calendardate")]
     pub start_date: NaiveDate,
+    #[serde(deserialize_with = "deserialize_calendardate")]
     pub end_date: NaiveDate,
 }
 
@@ -45,10 +55,12 @@ pub enum ExceptionType {
 }
 
 /// CalendarDate
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct CalendarDate {
     pub service_id: String,
+    #[serde(deserialize_with = "deserialize_calendardate")]
     pub date: NaiveDate,
+    #[serde(deserialize_with = "deserialize_exceptiontype")]
     pub exception_type: ExceptionType
 }
 
@@ -120,13 +132,20 @@ pub enum FrequencyAccuracy {
     Exact
 }
 
+fn default_frequencyaccuracy() -> FrequencyAccuracy {
+    return FrequencyAccuracy::Approximate;
+}
+
 /// Frequency
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Frequency {
     pub trip_id: String,
+    #[serde(deserialize_with = "deserialize_timeoffset")]
     pub start_time: TimeOffset,
+    #[serde(deserialize_with = "deserialize_timeoffset")]
     pub end_time: TimeOffset,
     pub headway_secs: u64,
+    #[serde(default = "default_frequencyaccuracy", deserialize_with = "deserialize_frequencyaccuracy")]
     pub exact_times: FrequencyAccuracy,
 }
 
@@ -144,13 +163,14 @@ pub enum RouteType {
 }
 
 /// Route
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Route {
     pub route_id: String,
     pub agency_id: Option<String>,
     pub route_short_name: String,
     pub route_long_name: String,
     pub route_desc: Option<String>,
+    #[serde(deserialize_with ="deserialize_routetype")]
     pub route_type: RouteType,
     pub route_url: Option<String>,
     pub route_color: Option<String>,
@@ -158,7 +178,7 @@ pub struct Route {
 }
 
 /// Shape
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Shape {
     pub shape_id: String,
     pub shape_pt_lat: f64,
@@ -174,6 +194,10 @@ pub enum LocationType {
     Station,
 }
 
+fn default_locationtype() -> LocationType {
+    LocationType::Stop
+}
+
 /// Wheelchair Boarding
 #[derive(Debug, PartialEq)]
 pub enum WheelchairBoarding {
@@ -182,8 +206,12 @@ pub enum WheelchairBoarding {
     NoAccessibility,
 }
 
+fn default_wheelchairboarding() -> WheelchairBoarding {
+    WheelchairBoarding::NoInformation
+}
+
 /// Stop
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Stop {
     pub stop_id: String,
     pub stop_code: Option<String>,
@@ -193,9 +221,11 @@ pub struct Stop {
     pub stop_lon: f64,
     pub zone_id: Option<String>,
     pub stop_url: Option<String>,
+    #[serde(default = "default_locationtype", deserialize_with = "deserialize_locationtype")]
     pub location_type: LocationType,
     pub parent_station: Option<String>,
     pub stop_timezone: Option<String>,
+    #[serde(default = "default_wheelchairboarding", deserialize_with = "deserialize_wheelchairboarding")]
     pub wheelchair_boarding: WheelchairBoarding,
 }
 
@@ -208,6 +238,10 @@ pub enum PickupType {
     MustCoordinateWithDriver,
 }
 
+fn default_pickuptype() -> PickupType {
+    PickupType::RegularlyScheduled
+}
+
 /// DropoffType for `StopTime`
 #[derive(Debug, PartialEq)]
 pub enum DropoffType {
@@ -217,6 +251,10 @@ pub enum DropoffType {
     MustCoordinateWithDriver,
 }
 
+fn default_dropofftype() -> DropoffType {
+    DropoffType::RegularlyScheduled
+}
+
 /// Timepoint for `StopTime`
 #[derive(Debug, PartialEq)]
 pub enum Timepoint {
@@ -224,27 +262,41 @@ pub enum Timepoint {
     Exact,
 }
 
+fn default_timepoint() -> Timepoint {
+    Timepoint::Exact
+}
+
 /// StopTime
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct StopTime {
     pub trip_id: String,
+    #[serde(deserialize_with = "deserialize_timeoffset")]
     pub arrival_time: TimeOffset,
+    #[serde(deserialize_with = "deserialize_timeoffset")]
     pub departure_time: TimeOffset,
     pub stop_id: String,
     pub stop_sequence: u64,
     pub stop_headsign: Option<String>,
+    #[serde(default = "default_pickuptype", deserialize_with = "deserialize_pickuptype")]
     pub pickup_type: PickupType,
+    #[serde(default = "default_dropofftype", deserialize_with = "deserialize_dropofftype")]
     pub dropoff_type: DropoffType,
     pub shape_dist_traveled: Option<f64>,
+    #[serde(default = "default_timepoint", deserialize_with = "deserialize_timepoint")]
     pub timepoint: Timepoint,
 }
 
 /// Wheelchair Accessible
+// TODO: merge with WheelchairBoarding
 #[derive(Debug)]
 pub enum WheelchairAccessible {
     NoInformation,
     SomeAccessibility,
     NoAccessibility,
+}
+
+fn default_wheelchairaccessible() -> WheelchairAccessible {
+    WheelchairAccessible::NoInformation
 }
 
 /// Bikes Allowed
@@ -255,8 +307,12 @@ pub enum BikesAllowed {
     NoBikes,
 }
 
+fn default_bikesallowed() -> BikesAllowed {
+    BikesAllowed::NoInformation
+}
+
 /// Trip
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Trip {
     pub route_id: String,
     pub service_id: String,
@@ -266,6 +322,8 @@ pub struct Trip {
     pub direction_id: Option<String>,
     pub block_id: Option<String>,
     pub shape_id: Option<String>,
+    #[serde(default = "default_wheelchairaccessible", deserialize_with = "deserialize_wheelchairaccessible")]
     pub wheelchair_accessible: WheelchairAccessible,
+    #[serde(default = "default_bikesallowed", deserialize_with = "deserialize_bikesallowed")]
     pub bikes_allowed: BikesAllowed,
 }
