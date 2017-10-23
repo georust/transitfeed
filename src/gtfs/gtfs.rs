@@ -90,7 +90,6 @@ mod test {
 
     #[test]
     fn test_parse_records() {
-
         let data = "\
 foo,bar,baz
 Foo,1.0,0
@@ -103,25 +102,54 @@ Foo,1.0,0
     }
 
     #[test]
-    fn test_error_parsing_primitives() {
-
+    fn test_error_parsing_primitive_fields() {
         let data = "\
 foo,bar,baz
 Foo,w,0
 ";
-        let expected = Test { foo: "Foo".to_string(), bar: 1.0, baz: false };
+        let expected = "error parsing bar in test.txt:2 - invalid float literal";
 
         let reader = csv::Reader::from_reader(data.as_bytes());
         let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
-        assert_eq!(&expected, iter.next().unwrap().as_ref().unwrap());
+
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
+    }
+
+    #[test]
+    fn test_error_parsing_custom_fields() {
+        let data = "\
+foo,bar,baz
+Foo,1,3
+";
+        // ugly: Can deserialize_dow_field take a DeRecordWrap instead to add field info?
+        let expected = "error parsing test.txt:2 - day of week field was not 0 or 1";
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
+    }
+
+    #[test]
+    fn test_error_parsing_bad_lines() {
+        let data = "\
+foo,bar,baz
+Foo,1
+";
+        // ugly: Can deserialize_dow_field take a DeRecordWrap instead to add field info?
+        let expected = "error parsing test.txt:2 - expected 3 fields but got 2 fields";
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
     }
 
     #[test]
     fn test_error_file_missing() {
         let result : Result<GTFSIterator<_, Test>, Error> = GTFSIterator::from_path("./examples/definitelynothere");
-        // TODO: make sure its an IO error
-        assert!(result.is_err());
+        assert_eq!("error parsing ./examples/definitelynothere - No such file or directory (os error 2)", format!("{}", result.err().unwrap()))
     }
-
-    // TODO: raw csv serde errors are kind of obscure, try to make them better
 }

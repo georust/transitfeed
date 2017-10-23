@@ -11,7 +11,7 @@ pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>
     match result {
         0 => Ok(false),
         1 => Ok(true),
-        _ => Err(serde::de::Error::custom("Day of week field was not 0 or 1"))
+        _ => Err(serde::de::Error::custom("day of week field was not 0 or 1"))
     }
 }
 
