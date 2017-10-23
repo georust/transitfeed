@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use csv::Reader;
-use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip};
+use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip, FareRule, FareAttribute};
 
 const AGENCY_DATA: &'static str = "./examples/bench/agency.txt";
 const CALENDAR_DATA: &'static str = "./examples/bench/calendar.txt";
@@ -19,6 +19,8 @@ const STOP_DATA: &'static str = "./examples/bench/stops.txt";
 const STOP_TIMES_DATA: &'static str = "./examples/bench/stop_times.txt";
 const TRIP_DATA: &'static str = "./examples/bench/trips.txt";
 const FREQUENCY_DATA: &'static str = "./examples/bench/frequencies.txt";
+const FARE_RULES_DATA: &'static str = "./examples/bench/fare_rules.txt";
+const FARE_ATTRIBUTES_DATA: &'static str = "./examples/bench/fare_attributes.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -144,6 +146,32 @@ fn bench_trip_iterator(b: &mut Bencher) {
         let iterator : GTFSIterator<_, Trip> = GTFSIterator::new(csv, "trips.txt").unwrap();
         for trip in iterator {
             let _ = trip;
+        }
+    })
+}
+
+#[bench]
+fn bench_fare_rules_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FARE_RULES_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, FareRule> = GTFSIterator::new(csv, "fare_rules.txt").unwrap();
+        for rule in iterator {
+            let _ = rule;
+        }
+    })
+}
+
+#[bench]
+fn bench_fare_attributes_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FARE_ATTRIBUTES_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, FareAttribute> = GTFSIterator::new(csv, "fare_attributes.txt").unwrap();
+        for attribute in iterator {
+            let _ = attribute;
         }
     })
 }

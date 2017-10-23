@@ -1,6 +1,6 @@
 extern crate transitfeed;
 
-use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip};
+use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip, FareRule, FareAttribute};
 
 #[test]
 fn test_read_agencies() {
@@ -72,6 +72,22 @@ fn test_read_stop_times() {
 #[test]
 fn test_read_trips() {
     let iter : GTFSIterator<_, Trip> = GTFSIterator::from_path("./examples/bench/trips.txt").unwrap();
+    for result in iter {
+        assert!(result.is_ok(), format!("{}", result.err().unwrap()));
+    }
+}
+
+#[test]
+fn test_read_fare_rules() {
+    let iter : GTFSIterator<_, FareRule> = GTFSIterator::from_path("./examples/bench/fare_rules.txt").unwrap();
+    for result in iter {
+        assert!(result.is_ok(), format!("{}", result.err().unwrap()));
+    }
+}
+
+#[test]
+fn test_read_fare_attributes() {
+    let iter : GTFSIterator<_, FareAttribute> = GTFSIterator::from_path("./examples/bench/fare_attributes.txt").unwrap();
     for result in iter {
         assert!(result.is_ok(), format!("{}", result.err().unwrap()));
     }

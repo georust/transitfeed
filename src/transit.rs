@@ -81,19 +81,22 @@ pub enum Transfers {
 }
 
 /// FareAttribute
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct FareAttribute {
     pub fare_id: String,
     pub price: f64,
     pub currency_type: String,
+    #[serde(deserialize_with = "deserialize_paymentmethod")]
     pub payment_method: PaymentMethod,
+    #[serde(deserialize_with = "deserialize_transfers")]
     pub transfers: Transfers,
-    pub transfer_duration: Duration,
+    #[serde(deserialize_with = "deserialize_transferduration")]
+    pub transfer_duration: Option<Duration>,
 }
 
 /// FareRule
 /// origin, destination, and contains reference a zone_id from stops
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct FareRule {
     pub fare_id: String,
     pub route_id: Option<String>,

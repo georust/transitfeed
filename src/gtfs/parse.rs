@@ -1,8 +1,9 @@
 use serde;
 use serde::Deserializer;
-use chrono::NaiveDate;
+use chrono::{Duration, NaiveDate};
 use transit::{ExceptionType, LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType,
-              DropoffType, TimeOffset, RouteType, Timepoint, WheelchairAccessible, BikesAllowed};
+              DropoffType, TimeOffset, RouteType, Timepoint, WheelchairAccessible,
+              BikesAllowed, PaymentMethod, Transfers};
 
 pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>
     where D: Deserializer<'de>
@@ -191,6 +192,46 @@ pub fn deserialize_timepoint<'de, D>(deserializer: D) -> Result<Timepoint, D::Er
         }
     }
 }
+
+pub fn deserialize_paymentmethod<'de, D>(deserializer: D) -> Result<PaymentMethod, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
+        0 => Ok(PaymentMethod::PaidOnboard),
+        1 => Ok(PaymentMethod::PaidBefore),
+        _ => Err(serde::de::Error::custom("payment method must be 0 or 1"))
+    }
+}
+
+pub fn deserialize_transfers<'de, D>(deserializer: D) -> Result<Transfers, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(Transfers::Unlimited),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(Transfers::None),
+            Ok(1) => Ok(Transfers::TransferOnce),
+            Ok(2) => Ok(Transfers::TransferTwice),
+            _ => Err(serde::de::Error::custom("transfers must be between 0 and 2 or blank"))
+        }
+    }
+}
+
+pub fn deserialize_transferduration<'de, D>(deserializer:D) -> Result<Option<Duration>, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(None),
+        r => match r.parse::<i64>() {
+            Ok(x) => Ok(Some(Duration::seconds(x))),
+            Err(_) => Err(serde::de::Error::custom("transfers duration must be a number or blank"))
+        }
+    }
+}
+
 //#[test]
 //fn parse_timeoffset_test() {
 //    assert_eq!(parse_timeoffset("01:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
