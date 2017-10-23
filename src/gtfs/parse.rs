@@ -21,7 +21,7 @@ pub fn deserialize_calendardate<'de, D>(deserializer: D) -> Result<NaiveDate, D:
     let result : String = try!(serde::Deserialize::deserialize(deserializer));
     match NaiveDate::parse_from_str(&result, "%Y%m%d") {
         Ok(d) => Ok(d),
-        Err(e) => Err(serde::de::Error::custom("Date must be in YYYYMMDD format"))
+        Err(e) => Err(serde::de::Error::custom(format!("Date must be in YYYYMMDD format: {}", e)))
     }
 }
 
@@ -104,19 +104,46 @@ pub fn deserialize_locationtype<'de, D>(deserializer: D) -> Result<LocationType,
 pub fn deserialize_wheelchairboarding<'de, D>(deserializer: D) -> Result<WheelchairBoarding, D::Error>
     where D: Deserializer<'de>
 {
-    Ok(WheelchairBoarding::NoInformation)
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(WheelchairBoarding::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(WheelchairBoarding::NoInformation),
+            Ok(1) => Ok(WheelchairBoarding::SomeAccessibility),
+            Ok(2) => Ok(WheelchairBoarding::NoAccessibility),
+            _ => Err(serde::de::Error::custom("Wheelchair boarding must be between 0 and 2"))
+        }
+    }
 }
 
 pub fn deserialize_wheelchairaccessible<'de, D>(deserializer: D) -> Result<WheelchairAccessible, D::Error>
     where D: Deserializer<'de>
 {
-    Ok(WheelchairAccessible::NoInformation)
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(WheelchairAccessible::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(WheelchairAccessible::NoInformation),
+            Ok(1) => Ok(WheelchairAccessible::SomeAccessibility),
+            Ok(2) => Ok(WheelchairAccessible::NoAccessibility),
+            _ => Err(serde::de::Error::custom("Wheelchair accessibility must be between 0 and 2"))
+        }
+    }
 }
 
 pub fn deserialize_bikesallowed<'de, D>(deserializer: D) -> Result<BikesAllowed, D::Error>
     where D: Deserializer<'de>
 {
-    Ok(BikesAllowed::NoInformation)
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(BikesAllowed::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(BikesAllowed::NoInformation),
+            Ok(1) => Ok(BikesAllowed::SomeBikes),
+            Ok(2) => Ok(BikesAllowed::NoBikes),
+            _ => Err(serde::de::Error::custom("Bikes allowed must be between 0 and 2"))
+        }
+    }
 }
 
 pub fn deserialize_pickuptype<'de, D>(deserializer: D) -> Result<PickupType, D::Error>
@@ -154,8 +181,15 @@ pub fn deserialize_dropofftype<'de, D>(deserializer: D) -> Result<DropoffType, D
 pub fn deserialize_timepoint<'de, D>(deserializer: D) -> Result<Timepoint, D::Error>
     where D: Deserializer<'de>
 {
-    // not supported yet
-    Ok(Timepoint::Exact)
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(Timepoint::Exact),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(Timepoint::Approximate),
+            Ok(1) => Ok(Timepoint::Exact),
+            _ => Err(serde::de::Error::custom("Timepoint must be 0 or 1"))
+        }
+    }
 }
 //#[test]
 //fn parse_timeoffset_test() {
