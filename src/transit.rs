@@ -281,7 +281,7 @@ pub struct Shape {
     pub shape_pt_lat: f64,
     pub shape_pt_lon: f64,
     pub shape_pt_sequence: u64,
-    pub shape_dist_traveled: f64,
+    pub shape_dist_traveled: Option<f64>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
