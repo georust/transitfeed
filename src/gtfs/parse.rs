@@ -26,6 +26,19 @@ pub fn deserialize_calendardate<'de, D>(deserializer: D) -> Result<NaiveDate, D:
     }
 }
 
+pub fn deserialize_option_calendardate<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.as_ref() {
+        "" => Ok(None),
+        s => match NaiveDate::parse_from_str(s, "%Y%m%d") {
+            Ok(d) => Ok(Some(d)),
+            Err(e) => Err(serde::de::Error::custom(format!("Date must be in YYYYMMDD format: {}", e)))
+        }
+    }
+}
+
 pub fn deserialize_exceptiontype<'de, D>(deserializer: D) -> Result<ExceptionType, D::Error>
     where D: Deserializer<'de>
 {

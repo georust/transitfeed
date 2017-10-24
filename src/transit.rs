@@ -349,3 +349,21 @@ pub struct Transfer {
     #[serde(deserialize_with = "deserialize_transferduration")]
     pub min_transfer_time: Option<Duration>
 }
+
+
+/// Feed Info
+#[derive(Debug, Deserialize)]
+pub struct FeedInfo {
+    pub feed_publisher_name: String,
+    pub feed_publisher_url: String,
+    pub feed_lang: String,
+    #[serde(default = "default_feed_date", deserialize_with = "deserialize_option_calendardate")]
+    pub feed_start_date: Option<NaiveDate>,
+    #[serde(default = "default_feed_date", deserialize_with = "deserialize_option_calendardate")]
+    pub feed_end_date: Option<NaiveDate>,
+    pub feed_version: Option<String>
+}
+
+fn default_feed_date() -> Option<NaiveDate> {
+    None
+}
