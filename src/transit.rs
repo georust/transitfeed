@@ -1,14 +1,5 @@
-use std::error::Error;
 use chrono::{Duration, NaiveDate};
 use gtfs::parse::*;
-
-/// Transit trait defines methods for iterating over components of a Transit
-/// system
-pub trait Transit<'a, E: Error> {
-    type AgencyIterator: Iterator<Item=Result<Agency, E>>;
-
-    fn agencies(&'a self) -> Self::AgencyIterator;
-}
 
 /// Agency
 #[derive(Debug, Deserialize)]
