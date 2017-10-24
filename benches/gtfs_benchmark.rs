@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use csv::Reader;
-use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip, FareRule, FareAttribute};
+use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip, FareRule, FareAttribute, Transfer};
 
 const AGENCY_DATA: &'static str = "./examples/bench/agency.txt";
 const CALENDAR_DATA: &'static str = "./examples/bench/calendar.txt";
@@ -21,6 +21,7 @@ const TRIP_DATA: &'static str = "./examples/bench/trips.txt";
 const FREQUENCY_DATA: &'static str = "./examples/bench/frequencies.txt";
 const FARE_RULES_DATA: &'static str = "./examples/bench/fare_rules.txt";
 const FARE_ATTRIBUTES_DATA: &'static str = "./examples/bench/fare_attributes.txt";
+const TRANSFERS_DATA: &'static str = "./examples/good_feed/transfers.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -170,6 +171,19 @@ fn bench_fare_attributes_iterator(b: &mut Bencher) {
     b.iter(|| {
         let csv = Reader::from_reader(&*data);
         let iterator : GTFSIterator<_, FareAttribute> = GTFSIterator::new(csv, "fare_attributes.txt").unwrap();
+        for attribute in iterator {
+            let _ = attribute;
+        }
+    })
+}
+
+#[bench]
+fn bench_transfers_iterator(b: &mut Bencher) {
+    let data = file_to_mem(TRANSFERS_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Transfer> = GTFSIterator::new(csv, "transfers.txt").unwrap();
         for attribute in iterator {
             let _ = attribute;
         }

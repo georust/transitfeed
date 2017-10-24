@@ -330,3 +330,22 @@ pub struct Trip {
     #[serde(default = "default_bikesallowed", deserialize_with = "deserialize_bikesallowed")]
     pub bikes_allowed: BikesAllowed,
 }
+
+#[derive(Debug)]
+pub enum TransferType {
+    Recommended,
+    Timed,
+    MinimumTime,
+    NotPossible
+}
+
+/// Transfer
+#[derive(Debug, Deserialize)]
+pub struct Transfer {
+    pub from_stop_id: String,
+    pub to_stop_id: String,
+    #[serde(deserialize_with = "deserialize_transfertype")]
+    pub transfer_type: TransferType,
+    #[serde(deserialize_with = "deserialize_transferduration")]
+    pub min_transfer_time: Option<Duration>
+}
