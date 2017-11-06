@@ -11,7 +11,7 @@ pub trait Transit<'a, E: Error> {
 }
 
 /// Agency
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Agency {
     pub agency_id: Option<String>,
     pub agency_name: String,
