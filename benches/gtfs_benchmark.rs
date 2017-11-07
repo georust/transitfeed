@@ -1,14 +1,14 @@
 #![feature(test)]
 extern crate transitfeed;
 extern crate test;
-extern crate quick_csv;
+extern crate csv;
 
 use std::fmt::{Debug, Display};
 use std::fs;
 use std::io::Read;
 use test::Bencher;
-use quick_csv::Csv;
-use transitfeed::{GTFSIterator, agencies, calendars, calendar_dates, frequencies, routes, shapes, stops, stop_times, trips};
+use csv::Reader;
+use transitfeed::{GTFSIterator, Agency, Calendar, CalendarDate, Frequency, Route, Shape, Stop, StopTime, Trip, FareRule, FareAttribute};
 
 const AGENCY_DATA: &'static str = "./examples/bench/agency.txt";
 const CALENDAR_DATA: &'static str = "./examples/bench/calendar.txt";
@@ -19,6 +19,8 @@ const STOP_DATA: &'static str = "./examples/bench/stops.txt";
 const STOP_TIMES_DATA: &'static str = "./examples/bench/stop_times.txt";
 const TRIP_DATA: &'static str = "./examples/bench/trips.txt";
 const FREQUENCY_DATA: &'static str = "./examples/bench/frequencies.txt";
+const FARE_RULES_DATA: &'static str = "./examples/bench/fare_rules.txt";
+const FARE_ATTRIBUTES_DATA: &'static str = "./examples/bench/fare_attributes.txt";
 
 fn or_die<T, E: Debug+Display>(r: Result<T, E>) -> T {
     r.or_else(|e: E| -> Result<T, E> { panic!(format!("{:?}", e)) }).unwrap()
@@ -36,8 +38,8 @@ fn bench_agency_iterator(b: &mut Bencher) {
     let data = file_to_mem(AGENCY_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "agency.txt".to_string(), agencies::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Agency> = GTFSIterator::new(csv, "agency.txt").unwrap();
         for agency in iterator {
             let _ = agency;
         }
@@ -49,8 +51,8 @@ fn bench_calendar_iterator(b: &mut Bencher) {
     let data = file_to_mem(CALENDAR_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "calendar.txt".to_string(), calendars::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Calendar> = GTFSIterator::new(csv, "calendar.txt").unwrap();
         for calendar in iterator {
             let _ = calendar;
         }
@@ -62,8 +64,8 @@ fn bench_calendar_date_iterator(b: &mut Bencher) {
     let data = file_to_mem(CALENDAR_DATE_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "calendar_dates.txt".to_string(), calendar_dates::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, CalendarDate> = GTFSIterator::new(csv, "calendar_dates.txt").unwrap();
         for calendar_date in iterator {
             let _ = calendar_date;
         }
@@ -75,8 +77,8 @@ fn bench_frequency_iterator(b: &mut Bencher) {
     let data = file_to_mem(FREQUENCY_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "frequencies.txt".to_string(), frequencies::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Frequency> = GTFSIterator::new(csv, "frequencies.txt").unwrap();
         for freq in iterator {
             let _ = freq;
         }
@@ -88,8 +90,8 @@ fn bench_route_iterator(b: &mut Bencher) {
     let data = file_to_mem(ROUTE_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "routes.txt".to_string(), routes::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Route> = GTFSIterator::new(csv, "routes.txt").unwrap();
         for route in iterator {
             let _ = route;
         }
@@ -101,8 +103,8 @@ fn bench_shape_iterator(b: &mut Bencher) {
     let data = file_to_mem(SHAPE_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "shapes.txt".to_string(), shapes::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Shape> = GTFSIterator::new(csv, "shapes.txt").unwrap();
         for shape in iterator {
             let _ = shape;
         }
@@ -114,8 +116,8 @@ fn bench_stop_iterator(b: &mut Bencher) {
     let data = file_to_mem(STOP_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "stops.txt".to_string(), stops::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Stop> = GTFSIterator::new(csv, "stops.txt").unwrap();
         for stop in iterator {
             let _ = stop;
         }
@@ -127,8 +129,8 @@ fn bench_stop_time_iterator(b: &mut Bencher) {
     let data = file_to_mem(STOP_TIMES_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "stop_times.txt".to_string(), stop_times::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, StopTime> = GTFSIterator::new(csv, "stop_times.txt").unwrap();
         for stop_time in iterator {
             let _ = stop_time;
         }
@@ -140,10 +142,36 @@ fn bench_trip_iterator(b: &mut Bencher) {
     let data = file_to_mem(TRIP_DATA);
     b.bytes = data.len() as u64;
     b.iter(|| {
-        let csv = Csv::from_reader(&*data);
-        let iterator = GTFSIterator::new(csv, "trips.txt".to_string(), trips::parse_row).unwrap();
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, Trip> = GTFSIterator::new(csv, "trips.txt").unwrap();
         for trip in iterator {
             let _ = trip;
+        }
+    })
+}
+
+#[bench]
+fn bench_fare_rules_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FARE_RULES_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, FareRule> = GTFSIterator::new(csv, "fare_rules.txt").unwrap();
+        for rule in iterator {
+            let _ = rule;
+        }
+    })
+}
+
+#[bench]
+fn bench_fare_attributes_iterator(b: &mut Bencher) {
+    let data = file_to_mem(FARE_ATTRIBUTES_DATA);
+    b.bytes = data.len() as u64;
+    b.iter(|| {
+        let csv = Reader::from_reader(&*data);
+        let iterator : GTFSIterator<_, FareAttribute> = GTFSIterator::new(csv, "fare_attributes.txt").unwrap();
+        for attribute in iterator {
+            let _ = attribute;
         }
     })
 }

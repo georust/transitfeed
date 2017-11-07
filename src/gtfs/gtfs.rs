@@ -1,93 +1,169 @@
-use gtfs::error::{ParseError, GtfsError};
-use std::io::BufRead;
-use std::iter::Zip;
-use std::slice::Iter;
-use quick_csv::Csv;
-use quick_csv::columns::Columns;
+use gtfs::error::Error;
+use csv::{DeserializeRecordsIntoIter, StringRecord, Reader, ErrorKind, DeserializeError, Position};
+use serde;
+use std;
 
-pub struct GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
+pub struct GTFSIterator<R, T>
+    where R: std::io::Read,
+          T: serde::de::DeserializeOwned
 {
-    csv: Csv<B>,
+    iter: DeserializeRecordsIntoIter<R, T>,
+    headers: StringRecord,
     filename: String,
-    header: Vec<String>,
-    line: usize,
-    parser: F,
 }
 
-impl<B, F, T> GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
+impl<T> GTFSIterator<std::fs::File, T>
+    where T: serde::de::DeserializeOwned
 {
-    pub fn new(csv: Csv<B>, filename: String, parser: F) -> Result<GTFSIterator<B, F, T>, GtfsError> {
-        let mut csv = csv.has_header(true);
-        let header = csv.headers();
-        if header.len() == 0 {
-            Err(GtfsError::CsvHeader(filename))
-        } else {
-            Ok(GTFSIterator {
-                csv: csv,
-                parser: parser,
-                header: header,
-                filename: filename,
-                line: 1,
-            })
-        }
+    pub fn from_path(filename: &str) -> Result<GTFSIterator<std::fs::File, T>, Error>
+    {
+        let csv = match Reader::from_path(filename) {
+            Ok(c) => c,
+            Err(e) => return Err(Error::Csv(filename.to_string(), e))
+        };
+        GTFSIterator::new(csv, filename)
     }
 }
 
-impl<B, F, T> Iterator for GTFSIterator<B, F, T>
-    where B: BufRead,
-          F: (Fn(Zip<Iter<String>, Columns>) -> Result<T, ParseError>)
+impl<R, T> GTFSIterator<R, T>
+    where R: std::io::Read,
+          T: serde::de::DeserializeOwned
 {
-    type Item = Result<T, GtfsError>;
+    pub fn new(mut reader: Reader<R>, filename: &str) -> Result<GTFSIterator<R, T>, Error> {
+        let headers = match reader.headers() {
+            Ok(r) => r.clone(),
+            Err(e) => return Err(Error::Csv(filename.to_string(), e))
+        };
+        Ok(GTFSIterator{
+            iter: reader.into_deserialize(),
+            headers: headers,
+            filename: filename.to_string()
+        })
+    }
 
-    fn next(&mut self) -> Option<Result<T, GtfsError>> {
-        self.line += 1;
-        match self.csv.next() {
-            None => None,
-            Some(res) => match res {
-                Ok(row) => match row.columns() {
-                    Ok(columns) =>  {
-                        let result = match (self.parser)(self.header.iter().zip(columns)) {
-                            Ok(x) => Some(Ok(x)),
-                            Err(y) => Some(Err(GtfsError::LineParseError(y, self.filename.clone(), self.line))),
-                        };
-                        result
-                    },
-                    Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
+    fn wrap_fielderror(&self, err: &DeserializeError, position: &Option<Position>) -> Error {
+        let fieldname = match err.field() {
+            Some(field_pos) => Some(match self.headers.get(field_pos as usize) {
+                Some(field) => field.to_string(),
+                None => format!("field {}", field_pos).to_string()
+            }),
+            None => None
+        };
+        // TODO:: What if position.line() is None?
+        Error::FieldError(String::clone(&self.filename), position.as_ref().unwrap().line(), err.kind().clone(), fieldname)
+    }
+}
+
+impl<R, T> Iterator for GTFSIterator<R, T>
+    where R: std::io::Read,
+          T: serde::de::DeserializeOwned
+{
+    type Item = Result<T, Error>;
+
+    fn next(&mut self) -> Option<Result<T, Error>> {
+        match self.iter.next() {
+            Some(r) => Some(match r {
+                Err(e) => match e.into_kind() {
+                    ErrorKind::Deserialize{ref pos, ref err} => Err(self.wrap_fielderror(err, pos)),
+                    k => Err(Error::LineError(String::clone(&self.filename), k))
                 },
-                Err(err) => Some(Err(GtfsError::Csv(err, self.filename.clone(), self.line))),
-            }
+                Ok(s) => Ok(s)
+            }),
+            None => None
         }
     }
 }
 
-#[test]
-fn test_returns_parsed_entry() {
-    let csv = Csv::from_string("foo,bar,baz
-                                ,,");
-    let mut iterator = GTFSIterator::new(csv, "example.txt".to_string(), |_| Ok(())).unwrap();
-    let entry = iterator.next().unwrap().unwrap();
-    assert_eq!((), entry);
-}
+#[cfg(test)]
+mod test {
+    use csv;
+    use super::*;
+    use gtfs::parse::*;
 
-#[test]
-fn test_wraps_parse_failures() {
-    let csv = Csv::from_string("foo,bar,baz
-                                ,,");
-    let mut iterator = GTFSIterator::new(csv, "example.txt".to_string(), |_| -> Result<(), ParseError> { Err(ParseError::ParseFloat("".to_string())) }).unwrap();
-    let entry = iterator.next().unwrap().err().unwrap();
-    assert_eq!("GtfsError: error reading line (example.txt:2) - Some(ParseFloat(\"\"))", format!("{}", entry));
-}
+    #[derive(Debug, Deserialize, PartialEq)]
+    struct Test {
+        foo: String,
+        bar: f64,
+        #[serde(deserialize_with = "deserialize_dow_field")]  // makes 0 or 1 into bool
+        baz: bool
+    }
 
-#[test]
-fn test_wraps_row_failures() {
-    // Use column mismatch
-    let csv = Csv::from_string("foo,bar,baz
-                                ,");
-    let mut iterator = GTFSIterator::new(csv, "example.txt".to_string(), |_| Ok(())).unwrap();
-    let entry = iterator.next().unwrap().err().unwrap();
-    assert_eq!("GtfsError: Current column count mismatch with previous rows (example.txt:2) - Some(ColumnMismatch(3, 2))", format!("{}", entry));
+    #[test]
+    fn test_parse_records() {
+        let data = "\
+foo,bar,baz
+Foo,1.0,0
+";
+        let expected = Test { foo: "Foo".to_string(), bar: 1.0, baz: false };
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+        assert_eq!(&expected, iter.next().unwrap().as_ref().unwrap());
+    }
+
+    #[test]
+    #[ignore]  // probably worth getting involved in https://github.com/BurntSushi/rust-csv/issues/78
+    fn test_parse_primitive_fields_with_whitespace() {
+        let data = "\
+foo,bar,baz
+Foo,  1.0,0
+";
+        let expected = Test { foo: "Foo".to_string(), bar: 1.0, baz: false };
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+        assert_eq!(&expected, iter.next().unwrap().as_ref().unwrap());
+    }
+
+    #[test]
+    fn test_error_parsing_primitive_fields() {
+        let data = "\
+foo,bar,baz
+Foo,w,0
+";
+        let expected = "error parsing bar in test.txt:2 - invalid float literal";
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
+    }
+
+    #[test]
+    fn test_error_parsing_custom_fields() {
+        let data = "\
+foo,bar,baz
+Foo,1,3
+";
+        // ugly: Can deserialize_dow_field take a DeRecordWrap instead to add field info?
+        let expected = "error parsing test.txt:2 - day of week field was not 0 or 1";
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
+    }
+
+    #[test]
+    fn test_error_parsing_bad_lines() {
+        let data = "\
+foo,bar,baz
+Foo,1
+";
+        // ugly: Can deserialize_dow_field take a DeRecordWrap instead to add field info?
+        let expected = "error parsing test.txt:2 - expected 3 fields but got 2 fields";
+
+        let reader = csv::Reader::from_reader(data.as_bytes());
+        let mut iter : GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
+        let result = iter.next().unwrap().err().unwrap();
+        assert_eq!(expected, format!("{}", result));
+    }
+
+    #[test]
+    fn test_error_file_missing() {
+        let result : Result<GTFSIterator<_, Test>, Error> = GTFSIterator::from_path("./examples/definitelynothere");
+        assert_eq!("error parsing ./examples/definitelynothere - No such file or directory (os error 2)", format!("{}", result.err().unwrap()))
+    }
 }

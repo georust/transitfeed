@@ -1,88 +1,51 @@
-use std::error;
+use std::error::{Error as StdError};
 use std::fmt;
-use quick_csv::error::{Error as CsvError};
-use std::error::Error;
-
+use csv::{DeserializeErrorKind, ErrorKind, Error as CsvError};
 
 #[derive(Debug)]
-pub enum GtfsError {
-    Csv(CsvError, String, usize),
-    CsvHeader(String),
-    LineParseError(ParseError, String, usize),
+pub enum Error {
+    Csv(String, CsvError),
+    FieldError(String, u64, DeserializeErrorKind, Option<String>),
+    LineError(String, ErrorKind)
 }
 
-impl fmt::Display for GtfsError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            GtfsError::Csv(_, ref file, ref line) => write!(f, "GtfsError: {} ({}:{}) - {:?}", self.description(), file, line, self.cause()),
-            GtfsError::CsvHeader(ref file) => write!(f, "GtfsError: {}, ({})", self.description(), file),
-            GtfsError::LineParseError(_, ref file, ref line) => write!(f, "GtfsError: {} ({}:{}) - {:?}", self.description(), file, line, self.cause()),
+            Error::Csv(ref filename, ref err) => write!(f, "error parsing {} - {}", filename, format!("{}", err)),
+            Error::FieldError(ref filename, ref lineno, ref errk, ref field) => match *field {
+                Some(ref fieldname) => {
+                    write!(f, "error parsing {} in {}:{} - {}", fieldname, filename, lineno, format!("{}", errk))
+                }
+                None => write!(f, "error parsing {}:{} - {}", filename, lineno, format!("{}", errk))
+            },
+            Error::LineError(ref filename, ref err) => match *err {
+                // TODO: Find out when position can be None
+                ErrorKind::UnequalLengths{ref pos, ref expected_len, ref len} => write!(f, "error parsing {}:{} - expected {} fields but got {} fields", filename, pos.as_ref().unwrap().line(), expected_len, len),
+                ErrorKind::Utf8{ref pos, ref err} => write!(f, "error parsing {}:{} - {:?}", filename, pos.as_ref().unwrap().line(), err),
+                _ => write!(f, "error parsing {} - {:?}", filename, err)
+            }
         }
     }
 }
 
-impl error::Error for GtfsError {
+impl StdError for Error {
     fn description(&self) -> &str {
+        use self::Error::*;
         match *self {
-            GtfsError::Csv(ref err, _, _) => err.description(),
-            GtfsError::CsvHeader(_) => "error reading headers",
-            GtfsError::LineParseError(_, _, _) => "error reading line",
+            Csv(_, ref err) => err.description(),
+            FieldError(..) => "error processing field of a line",
+            LineError(..) => "error processing line"
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&StdError> {
+        use self::Error::*;
         match *self {
-            GtfsError::Csv(ref err, _, _) => Some(err),
-            GtfsError::CsvHeader(_) => None,
-            GtfsError::LineParseError(ref err, _, _) => Some(err),
+            Csv(_, ref err) => Some(err),
+            // ErrorKinds don't implement std::error::Error, need to keep original error
+            FieldError(..) => None,
+            LineError(..) => None
         }
-    }
-}
-
-#[derive(Debug)]
-pub enum ParseError {
-    ParseInt(String),
-    ParseFloat(String),
-    ParseDate(String),
-    ParseTime(String),
-    ParseLocationType(String),
-    ParseWheelchairBoarding(String),
-    ParseExactTimes(String),
-    ParsePickupType(String),
-    ParseDropoffType(String),
-    ParseRouteType(String),
-    ParseWheelchairAccessible(String),
-    ParseBikesAllowed(String),
-}
-
-// TODO: This is ugly as hell, also look into improving ParseError.description too
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            ParseError::ParseInt(ref value) | ParseError::ParseFloat(ref value) | ParseError::ParseDate(ref value) | ParseError::ParseTime(ref value) | ParseError::ParseLocationType(ref value) | ParseError::ParseWheelchairBoarding(ref value) | ParseError::ParseExactTimes(ref value) | ParseError::ParsePickupType(ref value) | ParseError::ParseDropoffType(ref value) | ParseError::ParseRouteType(ref value) | ParseError::ParseWheelchairAccessible(ref value) | ParseError::ParseBikesAllowed(ref value) => write!(f, "ParseError: {} - '{}'", self.description(), value),
-        }
-    }
-}
-
-impl error::Error for ParseError {
-    fn description(&self) -> &str {
-        match *self {
-            ParseError::ParseInt(_) => "error parsing int",
-            ParseError::ParseFloat(_) => "error parsing float",
-            ParseError::ParseDate(_) => "error parsing date",
-            ParseError::ParseTime(_) => "error parsing time",
-            ParseError::ParseLocationType(_) => "error parsing location_type",
-            ParseError::ParseWheelchairBoarding(_) => "error parsing wheelchair_boarding",
-            ParseError::ParseExactTimes(_) => "error parsing exact_times",
-            ParseError::ParsePickupType(_) => "error parsing pickup_type",
-            ParseError::ParseDropoffType(_) => "error parsing dropoff_type",
-            ParseError::ParseRouteType(_) => "error parsing route_type",
-            ParseError::ParseWheelchairAccessible(_) => "error parsing wheelchair_accessible",
-            ParseError::ParseBikesAllowed(_) => "error parsing bikes_allowed",
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        None
     }
 }

@@ -8,11 +8,11 @@ authors = ["Tom Burdick <thomas.burdick@gmail.com>"]
 keywords = ["transit", "gtfs", "transitfeed"]
 
 [dependencies]
-quick-csv = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+csv = "1.0.0-beta.5"
+serde = "1"
+serde_derive = "1"
 zip = "0.2"
-
-[dependencies.chrono]
-version = "0.4"
 
 [lib]
 bench=false

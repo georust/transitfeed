@@ -1,74 +1,54 @@
-use std::str::FromStr;
-use chrono::NaiveDate;
+use serde;
+use serde::Deserializer;
+use chrono::{Duration, NaiveDate};
 use transit::{ExceptionType, LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType,
-              DropoffType, TimeOffset, RouteType, WheelchairAccessible, BikesAllowed};
-use gtfs::error::ParseError;
+              DropoffType, TimeOffset, RouteType, Timepoint, WheelchairAccessible,
+              BikesAllowed, PaymentMethod, Transfers};
 
-
-/// Parse an Integer with line and file numbers given for error reporting
-pub fn parse_int<T: FromStr>(val: &str) -> Result<T, ParseError> {
-    match val.parse::<T>() {
-        Ok(n) => Ok(n),
-        Err(_) => Err(ParseError::ParseInt(String::from(val))),
-    }
-}
-
-/// Parse a Float with line and file numbers given for error reporting
-pub fn parse_float<T: FromStr>(val: &str) -> Result<T, ParseError> {
-    match val.parse::<T>() {
-        Ok(n) => Ok(n),
-        Err(_) => Err(ParseError::ParseFloat(String::from(val))),
-    }
-}
-
-/// Parse a day of week service bit
-pub fn parse_dow(val: &str) -> Result<bool, ParseError>
+pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>
+    where D: Deserializer<'de>
 {
-    match val.parse::<u32>() {
-        Ok(0) => Ok(false),
-        Ok(1) => Ok(true),
-        Ok(_) | Err(_) => Err(ParseError::ParseInt(String::from(val))),
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
+        0 => Ok(false),
+        1 => Ok(true),
+        _ => Err(serde::de::Error::custom("day of week field was not 0 or 1"))
     }
 }
 
-/// Parse a CalendarDate ExceptionType
-pub fn parse_exceptiontype(val: &str) -> Result<ExceptionType, ParseError>
+pub fn deserialize_calendardate<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+    where D: Deserializer<'de>
 {
-    match val.parse::<u32>() {
-        Ok(1) => Ok(ExceptionType::ServiceAdded),
-        Ok(2) => Ok(ExceptionType::ServiceRemoved),
-        Ok(_) | Err(_) => Err(ParseError::ParseInt(String::from(val))),
-    }
-}
-
-/// Parse a frequencie exact_times field. Returns true when times are exactly scheduled
-pub fn parse_exact_times(val: &str) -> Result<FrequencyAccuracy, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        "0" => Ok(FrequencyAccuracy::Approximate),
-        "1" => Ok(FrequencyAccuracy::Exact),
-        _ => Err(ParseError::ParseExactTimes(String::from(val))),
-    }
-}
-
-/// Parse a &str containing a date in gtfs and return NaiveDate
-pub fn parse_date(val: &str) -> Result<NaiveDate, ParseError>
-{
-    match NaiveDate::parse_from_str(val, "%Y%m%d") {
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match NaiveDate::parse_from_str(&result, "%Y%m%d") {
         Ok(d) => Ok(d),
-        Err(_) => Err(ParseError::ParseDate(String::from(val)))
+        Err(e) => Err(serde::de::Error::custom(format!("Date must be in YYYYMMDD format: {}", e)))
     }
 }
 
-/// Takes a &str containing an arrival/departure time for gtfs and returns
-/// a naivetime. Chrono's NaiveTime parser is relatively slow and doesn't
-/// account for the optional leading zeros in the hour part.
-pub fn parse_timeoffset(val: &str) -> Result<TimeOffset, ParseError> {
-    let mut parts = val.trim().split(':');
-    let parse_part = |part: Option<&str>| -> Result<u32, ParseError> {
+pub fn deserialize_exceptiontype<'de, D>(deserializer: D) -> Result<ExceptionType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
+        1 => Ok(ExceptionType::ServiceAdded),
+        2 => Ok(ExceptionType::ServiceRemoved),
+        _ => Err(serde::de::Error::custom("Exception type field was not 1 or 2"))
+    }
+}
+
+pub fn deserialize_timeoffset<'de, D>(deserializer: D) -> Result<TimeOffset, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    let mut parts = result.trim().split(':');
+    let parse_part = |part: Option<&str>| -> Result<u32, D::Error> {
         match part {
-            Some(val) => Ok(try!(parse_int(val))),
-            None => Err(ParseError::ParseTime(String::from(val))),
+            Some(val) => match val.parse() {
+                Ok(x) => Ok(x),
+                Err(y) => Err(serde::de::Error::custom(y))
+            },
+            None => Err(serde::de::Error::custom("Unexpected timeoffset part"))
         }
     };
     let hours = try!(parse_part(parts.next()));
@@ -77,62 +57,25 @@ pub fn parse_timeoffset(val: &str) -> Result<TimeOffset, ParseError> {
     Ok(TimeOffset::from_hms(hours, minutes, seconds))
 }
 
-/// Takes a &str containing an stop time pickup type for gtfs and returns
-/// a `PickupType` enum.
-pub fn parse_pickup_type(val: &str) -> Result<PickupType, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        "" => Ok(PickupType::RegularlyScheduled),
-        "0" => Ok(PickupType::RegularlyScheduled),
-        "1" => Ok(PickupType::NoPickupAvailable),
-        "2" => Ok(PickupType::MustPhoneAgency),
-        "3" => Ok(PickupType::MustCoordinateWithDriver),
-        _ => Err(ParseError::ParsePickupType(String::from(val))),
+pub fn deserialize_frequencyaccuracy<'de, D>(deserializer: D) -> Result<FrequencyAccuracy, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(FrequencyAccuracy::Approximate),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(FrequencyAccuracy::Approximate),
+            Ok(1) => Ok(FrequencyAccuracy::Exact),
+            _ => Err(serde::de::Error::custom("Frequency accuracy must be 0 or 1")),
+        }
     }
 }
 
-/// Takes a &str containing an stop time dropoff type for gtfs and returns
-/// a `DropoffType` enum.
-pub fn parse_dropoff_type(val: &str) -> Result<DropoffType, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        "" => Ok(DropoffType::RegularlyScheduled),
-        "0" => Ok(DropoffType::RegularlyScheduled),
-        "1" => Ok(DropoffType::NoDropoffAvailable),
-        "2" => Ok(DropoffType::MustPhoneAgency),
-        "3" => Ok(DropoffType::MustCoordinateWithDriver),
-        _ => Err(ParseError::ParseDropoffType(String::from(val))),
-    }
-}
-
-/// Takes a &str containing an location type for gtfs and returns
-/// a `LocationType` enum.
-pub fn parse_location_type(val: &str) -> Result<LocationType, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        "0" => Ok(LocationType::Stop),
-        "1" => Ok(LocationType::Station),
-        _ => Err(ParseError::ParseLocationType(String::from(val))),
-    }
-}
-
-/// Takes a &str containing wheelchair boarding information for gtfs and returns
-/// a `WheelchairBoarding` enum.
-pub fn parse_wheelchair_boarding(val: &str) -> Result<WheelchairBoarding, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        "0" => Ok(WheelchairBoarding::NoInformation),
-        "1" => Ok(WheelchairBoarding::SomeAccessibility),
-        "2" => Ok(WheelchairBoarding::NoAccessibility),
-        _ => Err(ParseError::ParseWheelchairBoarding(String::from(val))),
-    }
-}
-
-/// Takes a &str containing route type information for gtfs and returns a
-/// `RouteType` enum.
-pub fn parse_route_type(val: &str) -> Result<RouteType, ParseError> {
-    let trimmed = val.trim();
-    match try!(parse_int(trimmed)) {
+pub fn deserialize_routetype<'de, D>(deserializer: D) -> Result<RouteType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
         0 => Ok(RouteType::LightRail),
         1 => Ok(RouteType::Subway),
         2 => Ok(RouteType::Rail),
@@ -141,46 +84,161 @@ pub fn parse_route_type(val: &str) -> Result<RouteType, ParseError> {
         5 => Ok(RouteType::CableCar),
         6 => Ok(RouteType::Gondola),
         7 => Ok(RouteType::Funicular),
-        _ => Err(ParseError::ParseRouteType(String::from(val))),
+        _ => Err(serde::de::Error::custom("Route type must (currently) be 0-7")),
     }
 }
 
-/// Takes a &str containing wheelchair accessibility information for gtfs and return a
-/// `WheelchairAccessible` enum.
-pub fn parse_wheelchair_accessible(val: &str) -> Result<WheelchairAccessible, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        _ => Err(ParseError::ParseWheelchairAccessible(String::from(val))),
-    }
-}
-
-/// Takes a &str containing bikes allowed information for gtfs and return a
-/// `BikesAllowed` enum.
-pub fn parse_bikes_allowed(val: &str) -> Result<BikesAllowed, ParseError> {
-    let trimmed = val.trim();
-    match trimmed {
-        _ => Err(ParseError::ParseBikesAllowed(String::from(val))),
-    }
-}
-
-
-macro_rules! parse_try {
-    ( $e:expr ) => {
-        match $e {
-            Ok(x) => x,
-            Err(e) => return Err(e),
+pub fn deserialize_locationtype<'de, D>(deserializer: D) -> Result<LocationType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(LocationType::Stop),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(LocationType::Stop),
+            Ok(1) => Ok(LocationType::Station),
+            _ => Err(serde::de::Error::custom("Location type must (currently) be 0 or 1")),
         }
     }
 }
 
-
-#[test]
-fn parse_timeoffset_test() {
-    assert_eq!(parse_timeoffset("01:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(parse_timeoffset("1:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(parse_timeoffset("01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert_eq!(parse_timeoffset(" 01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
-    assert!(parse_timeoffset(":01:01").is_err());
-    assert!(parse_timeoffset("ab:01:01").is_err());
-    assert!(parse_timeoffset("01::01").is_err());
+pub fn deserialize_wheelchairboarding<'de, D>(deserializer: D) -> Result<WheelchairBoarding, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(WheelchairBoarding::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(WheelchairBoarding::NoInformation),
+            Ok(1) => Ok(WheelchairBoarding::SomeAccessibility),
+            Ok(2) => Ok(WheelchairBoarding::NoAccessibility),
+            _ => Err(serde::de::Error::custom("Wheelchair boarding must be between 0 and 2"))
+        }
+    }
 }
+
+pub fn deserialize_wheelchairaccessible<'de, D>(deserializer: D) -> Result<WheelchairAccessible, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(WheelchairAccessible::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(WheelchairAccessible::NoInformation),
+            Ok(1) => Ok(WheelchairAccessible::SomeAccessibility),
+            Ok(2) => Ok(WheelchairAccessible::NoAccessibility),
+            _ => Err(serde::de::Error::custom("Wheelchair accessibility must be between 0 and 2"))
+        }
+    }
+}
+
+pub fn deserialize_bikesallowed<'de, D>(deserializer: D) -> Result<BikesAllowed, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(BikesAllowed::NoInformation),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(BikesAllowed::NoInformation),
+            Ok(1) => Ok(BikesAllowed::SomeBikes),
+            Ok(2) => Ok(BikesAllowed::NoBikes),
+            _ => Err(serde::de::Error::custom("Bikes allowed must be between 0 and 2"))
+        }
+    }
+}
+
+pub fn deserialize_pickuptype<'de, D>(deserializer: D) -> Result<PickupType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(PickupType::RegularlyScheduled),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(PickupType::RegularlyScheduled),
+            Ok(1) => Ok(PickupType::NoPickupAvailable),
+            Ok(2) => Ok(PickupType::MustPhoneAgency),
+            Ok(3) => Ok(PickupType::MustCoordinateWithDriver),
+            _ => Err(serde::de::Error::custom("Pickup type must be between 0 and 3")),
+        }
+    }
+}
+
+pub fn deserialize_dropofftype<'de, D>(deserializer: D) -> Result<DropoffType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(DropoffType::RegularlyScheduled),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(DropoffType::RegularlyScheduled),
+            Ok(1) => Ok(DropoffType::NoDropoffAvailable),
+            Ok(2) => Ok(DropoffType::MustPhoneAgency),
+            Ok(3) => Ok(DropoffType::MustCoordinateWithDriver),
+            _ => Err(serde::de::Error::custom("Dropoff type must be between 0 and 3")),
+        }
+    }
+}
+
+pub fn deserialize_timepoint<'de, D>(deserializer: D) -> Result<Timepoint, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(Timepoint::Exact),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(Timepoint::Approximate),
+            Ok(1) => Ok(Timepoint::Exact),
+            _ => Err(serde::de::Error::custom("Timepoint must be 0 or 1"))
+        }
+    }
+}
+
+pub fn deserialize_paymentmethod<'de, D>(deserializer: D) -> Result<PaymentMethod, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
+        0 => Ok(PaymentMethod::PaidOnboard),
+        1 => Ok(PaymentMethod::PaidBefore),
+        _ => Err(serde::de::Error::custom("payment method must be 0 or 1"))
+    }
+}
+
+pub fn deserialize_transfers<'de, D>(deserializer: D) -> Result<Transfers, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(Transfers::Unlimited),
+        r => match r.parse::<u32>() {
+            Ok(0) => Ok(Transfers::None),
+            Ok(1) => Ok(Transfers::TransferOnce),
+            Ok(2) => Ok(Transfers::TransferTwice),
+            _ => Err(serde::de::Error::custom("transfers must be between 0 and 2 or blank"))
+        }
+    }
+}
+
+pub fn deserialize_transferduration<'de, D>(deserializer:D) -> Result<Option<Duration>, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.trim() {
+        "" => Ok(None),
+        r => match r.parse::<i64>() {
+            Ok(x) => Ok(Some(Duration::seconds(x))),
+            Err(_) => Err(serde::de::Error::custom("transfers duration must be a number or blank"))
+        }
+    }
+}
+
+//#[test]
+//fn parse_timeoffset_test() {
+//    assert_eq!(parse_timeoffset("01:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
+//    assert_eq!(parse_timeoffset("1:01:01").unwrap(), TimeOffset::from_hms(1, 1, 1));
+//    assert_eq!(parse_timeoffset("01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
+//    assert_eq!(parse_timeoffset(" 01:01:01  ").unwrap(), TimeOffset::from_hms(1, 1, 1));
+//    assert!(parse_timeoffset(":01:01").is_err());
+//    assert!(parse_timeoffset("ab:01:01").is_err());
+//    assert!(parse_timeoffset("01::01").is_err());
+//}

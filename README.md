@@ -5,21 +5,30 @@ validation, and manipulation.
 
 ## Usage
 
+For files on your file system just us `GTFSIterator::from_path`
+
 ```rust
 extern crate transitfeed;
-extern crate quick_csv;
-
-use quick_csv::Csv;
-use transitfeed::{GTFSIterator, agencies};
+use transitfeed::{GTFSIterator, Agency};
 
 fn read_agencies() {
-    let csv = Csv::from_file("/tmp/my_feed/agency.txt").unwrap();
-    let iterator = GTFSIterator::new(csv, "agency.txt".to_string(), agencies::parse_row).unwrap();
+    let iterator : GTFSIterator<_, Agency> = GTFSIterator::from_path("~/Downloads/gtfs/agency.txt").unwrap();
     for result in iterator {
         match result {
             Ok(entry) => println!("{:?}", entry),
             Err(err) => println!("{}", err),
         };
     }
+}
+```
+
+If you have your own `csv::Reader` then just give `GTFSIterator::new` a meaningful name
+```rust
+let iterator : GTFSIterator<_, Agency> = GTFSIterator::new(reader, "example_data").unwrap();
+for result in iterator {
+    match result {
+        Ok(entry) => println!("{:?}", entry),
+        Err(err) => println!("{}", err),
+    };
 }
 ```
