@@ -3,7 +3,7 @@ use serde::Deserializer;
 use chrono::{Duration, NaiveDate};
 use transit::{ExceptionType, LocationType, WheelchairBoarding, FrequencyAccuracy, PickupType,
               DropoffType, TimeOffset, RouteType, Timepoint, WheelchairAccessible,
-              BikesAllowed, PaymentMethod, Transfers};
+              BikesAllowed, PaymentMethod, Transfers, TransferType};
 
 pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>
     where D: Deserializer<'de>
@@ -23,6 +23,19 @@ pub fn deserialize_calendardate<'de, D>(deserializer: D) -> Result<NaiveDate, D:
     match NaiveDate::parse_from_str(&result, "%Y%m%d") {
         Ok(d) => Ok(d),
         Err(e) => Err(serde::de::Error::custom(format!("Date must be in YYYYMMDD format: {}", e)))
+    }
+}
+
+pub fn deserialize_option_calendardate<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : String = try!(serde::Deserialize::deserialize(deserializer));
+    match result.as_ref() {
+        "" => Ok(None),
+        s => match NaiveDate::parse_from_str(s, "%Y%m%d") {
+            Ok(d) => Ok(Some(d)),
+            Err(e) => Err(serde::de::Error::custom(format!("Date must be in YYYYMMDD format: {}", e)))
+        }
     }
 }
 
@@ -229,6 +242,19 @@ pub fn deserialize_transferduration<'de, D>(deserializer:D) -> Result<Option<Dur
             Ok(x) => Ok(Some(Duration::seconds(x))),
             Err(_) => Err(serde::de::Error::custom("transfers duration must be a number or blank"))
         }
+    }
+}
+
+pub fn deserialize_transfertype<'de, D>(deserializer: D) -> Result<TransferType, D::Error>
+    where D: Deserializer<'de>
+{
+    let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+    match result {
+        0 => Ok(TransferType::Recommended),
+        1 => Ok(TransferType::Timed),
+        2 => Ok(TransferType::MinimumTime),
+        3 => Ok(TransferType::NotPossible),
+        _ => Err(serde::de::Error::custom("transfer type must be between 0 and 3"))
     }
 }
 

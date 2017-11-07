@@ -13,4 +13,4 @@ mod transit;
 mod gtfs;
 
 pub use transit::*;
-pub use gtfs::GTFSIterator;
+pub use gtfs::{GTFSIterator, Error};
