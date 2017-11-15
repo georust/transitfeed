@@ -43,36 +43,6 @@ impl<'de> serde::Deserialize<'de> for LocationType {
         }
     }
 }
-/// Wheelchair Boarding
-#[derive(Debug, PartialEq)]
-pub enum WheelchairBoarding {
-    NoInformation,
-    SomeAccessibility,
-    NoAccessibility,
-}
-
-impl Default for WheelchairBoarding {
-    fn default() -> Self {
-        WheelchairBoarding::NoInformation
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for WheelchairBoarding {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
-    {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
-        match result.trim() {
-            "" => Ok(WheelchairBoarding::NoInformation),
-            r => match r.parse::<u32>() {
-                Ok(0) => Ok(WheelchairBoarding::NoInformation),
-                Ok(1) => Ok(WheelchairBoarding::SomeAccessibility),
-                Ok(2) => Ok(WheelchairBoarding::NoAccessibility),
-                _ => Err(serde::de::Error::custom("Wheelchair boarding must be between 0 and 2"))
-            }
-        }
-    }
-}
 
 /// Stop
 #[derive(Debug, Deserialize, PartialEq)]
@@ -90,7 +60,7 @@ pub struct Stop {
     pub parent_station: Option<String>,
     pub stop_timezone: Option<String>,
     #[serde(default)]
-    pub wheelchair_boarding: WheelchairBoarding,
+    pub wheelchair_boarding: WheelchairAccessible,
 }
 
 /// RouteType
@@ -141,7 +111,7 @@ pub struct Route {
 
 /// Wheelchair Accessible
 // TODO: merge with WheelchairBoarding
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum WheelchairAccessible {
     NoInformation,
     SomeAccessibility,
@@ -219,71 +189,39 @@ pub struct Trip {
     pub bikes_allowed: BikesAllowed,
 }
 
-/// PickupType for `StopTime`
+/// PickupType/DropoffType for `StopTime`
 #[derive(Debug, PartialEq)]
-pub enum PickupType {
+pub enum StopServiceType {
     RegularlyScheduled,
-    NoPickupAvailable,
+    NoServiceAvailable, // No pickup or dropoff available
     MustPhoneAgency,
     MustCoordinateWithDriver,
 }
 
-impl Default for PickupType {
+impl Default for StopServiceType {
     fn default() -> Self {
-        PickupType::RegularlyScheduled
+        StopServiceType::RegularlyScheduled
     }
 }
 
-impl<'de> serde::Deserialize<'de> for PickupType {
+impl<'de> serde::Deserialize<'de> for StopServiceType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: serde::Deserializer<'de>
     {
         let result : String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
-            "" => Ok(PickupType::RegularlyScheduled),
+            "" => Ok(StopServiceType::RegularlyScheduled),
             r => match r.parse::<u32>() {
-                Ok(0) => Ok(PickupType::RegularlyScheduled),
-                Ok(1) => Ok(PickupType::NoPickupAvailable),
-                Ok(2) => Ok(PickupType::MustPhoneAgency),
-                Ok(3) => Ok(PickupType::MustCoordinateWithDriver),
-                _ => Err(serde::de::Error::custom("Pickup type must be between 0 and 3")),
+                Ok(0) => Ok(StopServiceType::RegularlyScheduled),
+                Ok(1) => Ok(StopServiceType::NoServiceAvailable),
+                Ok(2) => Ok(StopServiceType::MustPhoneAgency),
+                Ok(3) => Ok(StopServiceType::MustCoordinateWithDriver),
+                _ => Err(serde::de::Error::custom("StopService type must be between 0 and 3")),
             }
         }
     }
 }
 
-/// DropoffType for `StopTime`
-#[derive(Debug, PartialEq)]
-pub enum DropoffType {
-    RegularlyScheduled,
-    NoDropoffAvailable,
-    MustPhoneAgency,
-    MustCoordinateWithDriver,
-}
-
-impl Default for DropoffType {
-    fn default() -> Self {
-        DropoffType::RegularlyScheduled
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for DropoffType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
-    {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
-        match result.trim() {
-            "" => Ok(DropoffType::RegularlyScheduled),
-            r => match r.parse::<u32>() {
-                Ok(0) => Ok(DropoffType::RegularlyScheduled),
-                Ok(1) => Ok(DropoffType::NoDropoffAvailable),
-                Ok(2) => Ok(DropoffType::MustPhoneAgency),
-                Ok(3) => Ok(DropoffType::MustCoordinateWithDriver),
-                _ => Err(serde::de::Error::custom("Dropoff type must be between 0 and 3")),
-            }
-        }
-    }
-}
 /// Timepoint for `StopTime`
 #[derive(Debug, PartialEq)]
 pub enum Timepoint {
@@ -323,9 +261,9 @@ pub struct StopTime {
     pub stop_sequence: u64,
     pub stop_headsign: Option<String>,
     #[serde(default)]
-    pub pickup_type: PickupType,
+    pub pickup_type: StopServiceType,
     #[serde(default)]
-    pub dropoff_type: DropoffType,
+    pub dropoff_type: StopServiceType,
     pub shape_dist_traveled: Option<f64>,
     #[serde(default)]
     pub timepoint: Timepoint,
