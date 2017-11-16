@@ -391,9 +391,10 @@ pub struct FareRule {
     pub contains_id: Option<String>,
 }
 
-/// Shape
+/// ShapePoint
+/// A row from shapes.txt
 #[derive(Debug, Deserialize)]
-pub struct Shape {
+pub struct ShapePoint {
     pub shape_id: String,
     pub shape_pt_lat: f64,
     pub shape_pt_lon: f64,

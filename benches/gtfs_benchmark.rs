@@ -8,7 +8,7 @@ use std::fs;
 use std::io::Read;
 use test::Bencher;
 use csv::Reader;
-use transitfeed::{GTFSIterator, Agency, Stop, Route, Trip, StopTime, Calendar, CalendarDate, FareAttribute, FareRule, Shape, Frequency, Transfer, FeedInfo};
+use transitfeed::{GTFSIterator, Agency, Stop, Route, Trip, StopTime, Calendar, CalendarDate, FareAttribute, FareRule, ShapePoint, Frequency, Transfer, FeedInfo};
 
 const AGENCY_DATA: &'static str = "./examples/bench/agency.txt";
 const STOP_DATA: &'static str = "./examples/bench/stops.txt";
@@ -158,7 +158,7 @@ fn bench_shape_iterator(b: &mut Bencher) {
     b.bytes = data.len() as u64;
     b.iter(|| {
         let csv = Reader::from_reader(&*data);
-        let iterator : GTFSIterator<_, Shape> = GTFSIterator::new(csv, "shapes.txt").unwrap();
+        let iterator : GTFSIterator<_, ShapePoint> = GTFSIterator::new(csv, "shapes.txt").unwrap();
         for shape in iterator {
             let _ = shape;
         }
