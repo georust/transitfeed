@@ -30,16 +30,19 @@ impl Default for LocationType {
 
 impl<'de> serde::Deserialize<'de> for LocationType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(LocationType::Stop),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(LocationType::Stop),
                 Ok(1) => Ok(LocationType::Station),
-                _ => Err(serde::de::Error::custom("Location type must (currently) be 0 or 1")),
-            }
+                _ => Err(serde::de::Error::custom(
+                    "Location type must (currently) be 0 or 1",
+                )),
+            },
         }
     }
 }
@@ -78,9 +81,10 @@ pub enum RouteType {
 
 impl<'de> serde::Deserialize<'de> for RouteType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
         match result {
             0 => Ok(RouteType::LightRail),
             1 => Ok(RouteType::Subway),
@@ -90,7 +94,9 @@ impl<'de> serde::Deserialize<'de> for RouteType {
             5 => Ok(RouteType::CableCar),
             6 => Ok(RouteType::Gondola),
             7 => Ok(RouteType::Funicular),
-            _ => Err(serde::de::Error::custom("Route type must (currently) be 0-7")),
+            _ => Err(serde::de::Error::custom(
+                "Route type must (currently) be 0-7",
+            )),
         }
     }
 }
@@ -126,17 +132,20 @@ impl Default for WheelchairAccessible {
 
 impl<'de> serde::Deserialize<'de> for WheelchairAccessible {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(WheelchairAccessible::NoInformation),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(WheelchairAccessible::NoInformation),
                 Ok(1) => Ok(WheelchairAccessible::SomeAccessibility),
                 Ok(2) => Ok(WheelchairAccessible::NoAccessibility),
-                _ => Err(serde::de::Error::custom("Wheelchair accessibility must be between 0 and 2"))
-            }
+                _ => Err(serde::de::Error::custom(
+                    "Wheelchair accessibility must be between 0 and 2",
+                )),
+            },
         }
     }
 }
@@ -157,17 +166,20 @@ impl Default for BikesAllowed {
 
 impl<'de> serde::Deserialize<'de> for BikesAllowed {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(BikesAllowed::NoInformation),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(BikesAllowed::NoInformation),
                 Ok(1) => Ok(BikesAllowed::SomeBikes),
                 Ok(2) => Ok(BikesAllowed::NoBikes),
-                _ => Err(serde::de::Error::custom("Bikes allowed must be between 0 and 2"))
-            }
+                _ => Err(serde::de::Error::custom(
+                    "Bikes allowed must be between 0 and 2",
+                )),
+            },
         }
     }
 }
@@ -206,9 +218,10 @@ impl Default for StopServiceType {
 
 impl<'de> serde::Deserialize<'de> for StopServiceType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(StopServiceType::RegularlyScheduled),
             r => match r.parse::<u32>() {
@@ -216,8 +229,10 @@ impl<'de> serde::Deserialize<'de> for StopServiceType {
                 Ok(1) => Ok(StopServiceType::NoServiceAvailable),
                 Ok(2) => Ok(StopServiceType::MustPhoneAgency),
                 Ok(3) => Ok(StopServiceType::MustCoordinateWithDriver),
-                _ => Err(serde::de::Error::custom("StopService type must be between 0 and 3")),
-            }
+                _ => Err(serde::de::Error::custom(
+                    "StopService type must be between 0 and 3",
+                )),
+            },
         }
     }
 }
@@ -237,16 +252,17 @@ impl Default for Timepoint {
 
 impl<'de> serde::Deserialize<'de> for Timepoint {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(Timepoint::Exact),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(Timepoint::Approximate),
                 Ok(1) => Ok(Timepoint::Exact),
-                _ => Err(serde::de::Error::custom("Timepoint must be 0 or 1"))
-            }
+                _ => Err(serde::de::Error::custom("Timepoint must be 0 or 1")),
+            },
         }
     }
 }
@@ -302,13 +318,16 @@ pub enum ExceptionType {
 
 impl<'de> serde::Deserialize<'de> for ExceptionType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
         match result {
             1 => Ok(ExceptionType::ServiceAdded),
             2 => Ok(ExceptionType::ServiceRemoved),
-            _ => Err(serde::de::Error::custom("Exception type field was not 1 or 2"))
+            _ => Err(serde::de::Error::custom(
+                "Exception type field was not 1 or 2",
+            )),
         }
     }
 }
@@ -319,7 +338,7 @@ pub struct CalendarDate {
     pub service_id: String,
     #[serde(deserialize_with = "deserialize_calendardate")]
     pub date: NaiveDate,
-    pub exception_type: ExceptionType
+    pub exception_type: ExceptionType,
 }
 
 /// PaymentMethod for `FareAttribute`
@@ -331,13 +350,14 @@ pub enum PaymentMethod {
 
 impl<'de> serde::Deserialize<'de> for PaymentMethod {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
         match result {
             0 => Ok(PaymentMethod::PaidOnboard),
             1 => Ok(PaymentMethod::PaidBefore),
-            _ => Err(serde::de::Error::custom("payment method must be 0 or 1"))
+            _ => Err(serde::de::Error::custom("payment method must be 0 or 1")),
         }
     }
 }
@@ -353,17 +373,20 @@ pub enum Transfers {
 
 impl<'de> serde::Deserialize<'de> for Transfers {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(Transfers::Unlimited),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(Transfers::None),
                 Ok(1) => Ok(Transfers::TransferOnce),
                 Ok(2) => Ok(Transfers::TransferTwice),
-                _ => Err(serde::de::Error::custom("transfers must be between 0 and 2 or blank"))
-            }
+                _ => Err(serde::de::Error::custom(
+                    "transfers must be between 0 and 2 or blank",
+                )),
+            },
         }
     }
 }
@@ -419,25 +442,25 @@ impl TimeOffset {
     }
 
     pub fn duration(&self) -> Duration {
-        Duration::hours(self.hours as i64)
-            + Duration::minutes(self.minutes as i64)
+        Duration::hours(self.hours as i64) + Duration::minutes(self.minutes as i64)
             + Duration::seconds(self.seconds as i64)
     }
 }
 
 impl<'de> serde::Deserialize<'de> for TimeOffset {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         let mut parts = result.trim().split(':');
         let parse_part = |part: Option<&str>| -> Result<u32, D::Error> {
             match part {
                 Some(val) => match val.parse() {
                     Ok(x) => Ok(x),
-                    Err(y) => Err(serde::de::Error::custom(y))
+                    Err(y) => Err(serde::de::Error::custom(y)),
                 },
-                None => Err(serde::de::Error::custom("Unexpected timeoffset part"))
+                None => Err(serde::de::Error::custom("Unexpected timeoffset part")),
             }
         };
         let hours = try!(parse_part(parts.next()));
@@ -451,7 +474,7 @@ impl<'de> serde::Deserialize<'de> for TimeOffset {
 #[derive(Debug)]
 pub enum FrequencyAccuracy {
     Approximate,
-    Exact
+    Exact,
 }
 
 impl Default for FrequencyAccuracy {
@@ -462,16 +485,19 @@ impl Default for FrequencyAccuracy {
 
 impl<'de> serde::Deserialize<'de> for FrequencyAccuracy {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = try!(serde::Deserialize::deserialize(deserializer));
         match result.trim() {
             "" => Ok(FrequencyAccuracy::Approximate),
             r => match r.parse::<u32>() {
                 Ok(0) => Ok(FrequencyAccuracy::Approximate),
                 Ok(1) => Ok(FrequencyAccuracy::Exact),
-                _ => Err(serde::de::Error::custom("Frequency accuracy must be 0 or 1")),
-            }
+                _ => Err(serde::de::Error::custom(
+                    "Frequency accuracy must be 0 or 1",
+                )),
+            },
         }
     }
 }
@@ -492,20 +518,23 @@ pub enum TransferType {
     Recommended,
     Timed,
     MinimumTime,
-    NotPossible
+    NotPossible,
 }
 
 impl<'de> serde::Deserialize<'de> for TransferType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
-        let result : u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
         match result {
             0 => Ok(TransferType::Recommended),
             1 => Ok(TransferType::Timed),
             2 => Ok(TransferType::MinimumTime),
             3 => Ok(TransferType::NotPossible),
-            _ => Err(serde::de::Error::custom("transfer type must be between 0 and 3"))
+            _ => Err(serde::de::Error::custom(
+                "transfer type must be between 0 and 3",
+            )),
         }
     }
 }
@@ -517,9 +546,8 @@ pub struct Transfer {
     pub to_stop_id: String,
     pub transfer_type: TransferType,
     #[serde(deserialize_with = "deserialize_transferduration")]
-    pub min_transfer_time: Option<Duration>
+    pub min_transfer_time: Option<Duration>,
 }
-
 
 /// Feed Info
 #[derive(Debug, Deserialize)]
@@ -531,7 +559,7 @@ pub struct FeedInfo {
     pub feed_start_date: Option<NaiveDate>,
     #[serde(default = "default_feed_date", deserialize_with = "deserialize_option_calendardate")]
     pub feed_end_date: Option<NaiveDate>,
-    pub feed_version: Option<String>
+    pub feed_version: Option<String>,
 }
 
 fn default_feed_date() -> Option<NaiveDate> {
