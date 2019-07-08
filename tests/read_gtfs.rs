@@ -98,6 +98,7 @@ fn test_read_transfers() {
     }
 }
 
+/*
 #[test]
 fn test_read_feed_info() {
     let iter : GTFSIterator<_, FeedInfo> = GTFSIterator::from_path("./examples/good_feed/feed_info.txt").unwrap();
@@ -105,3 +106,4 @@ fn test_read_feed_info() {
         assert!(result.is_ok(), format!("{}", result.err().unwrap()));
     }
 }
+*/
