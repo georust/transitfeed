@@ -2,15 +2,15 @@
 //! and API clients for obtaining usable transit related information
 //! such as routes, stop, trips, stop times, and more.
 
+extern crate chrono;
 extern crate csv;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate chrono;
 extern crate zip;
 
 mod transit;
 mod gtfs;
 
 pub use transit::*;
-pub use gtfs::{GTFSIterator, Error};
+pub use gtfs::{Error, GTFSIterator};
