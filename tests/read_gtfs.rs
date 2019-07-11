@@ -1,5 +1,4 @@
 extern crate transitfeed;
-
 use transitfeed::{Agency, Calendar, CalendarDate, FareAttribute, FareRule, FeedInfo, Frequency,
                   GTFSIterator, Route, ShapePoint, Stop, StopTime, Transfer, Trip};
 

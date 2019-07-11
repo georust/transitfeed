@@ -4,6 +4,7 @@ use csv::{DeserializeErrorKind, Error as CsvError, ErrorKind};
 
 #[derive(Debug)]
 pub enum Error {
+    Feed(String),
     Csv(String, CsvError),
     FieldError(String, u64, DeserializeErrorKind, Option<String>),
     LineError(String, ErrorKind),
@@ -12,6 +13,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Error::Feed(ref message) => write!(f, "error in feed - {}", message),
             Error::Csv(ref filename, ref err) => {
                 write!(f, "error parsing {} - {}", filename, format!("{}", err))
             }
@@ -63,6 +65,7 @@ impl StdError for Error {
     fn description(&self) -> &str {
         use self::Error::*;
         match *self {
+            Feed(..) => "error using feed",
             Csv(_, ref err) => err.description(),
             FieldError(..) => "error processing field of a line",
             LineError(..) => "error processing line",
@@ -72,6 +75,7 @@ impl StdError for Error {
     fn cause(&self) -> Option<&StdError> {
         use self::Error::*;
         match *self {
+            Feed(..) => None,
             Csv(_, ref err) => Some(err),
             // ErrorKinds don't implement std::error::Error, need to keep original error
             FieldError(..) => None,

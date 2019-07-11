@@ -116,24 +116,6 @@ Foo,1.0,0
     }
 
     #[test]
-    #[ignore] // probably worth getting involved in https://github.com/BurntSushi/rust-csv/issues/78
-    fn test_parse_primitive_fields_with_whitespace() {
-        let data = "\
-foo,bar,baz
-Foo,  1.0,0
-";
-        let expected = Test {
-            foo: "Foo".to_string(),
-            bar: 1.0,
-            baz: false,
-        };
-
-        let reader = csv::Reader::from_reader(data.as_bytes());
-        let mut iter: GTFSIterator<_, Test> = GTFSIterator::new(reader, "test.txt").unwrap();
-        assert_eq!(&expected, iter.next().unwrap().as_ref().unwrap());
-    }
-
-    #[test]
     fn test_error_parsing_primitive_fields() {
         let data = "\
 foo,bar,baz
