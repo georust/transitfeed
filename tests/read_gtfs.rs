@@ -110,7 +110,6 @@ fn test_read_transfers() {
     }
 }
 
-/*
 #[test]
 fn test_read_feed_info() {
     let iter: GTFSIterator<_, FeedInfo> =
@@ -119,4 +118,3 @@ fn test_read_feed_info() {
         assert!(result.is_ok(), format!("{}", result.err().unwrap()));
     }
 }
-*/
