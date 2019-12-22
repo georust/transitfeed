@@ -33,7 +33,7 @@ impl<'de> serde::Deserialize<'de> for LocationType {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(LocationType::Stop),
             r => match r.parse::<u32>() {
@@ -84,7 +84,7 @@ impl<'de> serde::Deserialize<'de> for RouteType {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = serde::Deserialize::deserialize(deserializer)?;
         match result {
             0 => Ok(RouteType::LightRail),
             1 => Ok(RouteType::Subway),
@@ -135,7 +135,7 @@ impl<'de> serde::Deserialize<'de> for WheelchairAccessible {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(WheelchairAccessible::NoInformation),
             r => match r.parse::<u32>() {
@@ -169,7 +169,7 @@ impl<'de> serde::Deserialize<'de> for BikesAllowed {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(BikesAllowed::NoInformation),
             r => match r.parse::<u32>() {
@@ -221,7 +221,7 @@ impl<'de> serde::Deserialize<'de> for StopServiceType {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(StopServiceType::RegularlyScheduled),
             r => match r.parse::<u32>() {
@@ -255,7 +255,7 @@ impl<'de> serde::Deserialize<'de> for Timepoint {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(Timepoint::Exact),
             r => match r.parse::<u32>() {
@@ -321,7 +321,7 @@ impl<'de> serde::Deserialize<'de> for ExceptionType {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = serde::Deserialize::deserialize(deserializer)?;
         match result {
             1 => Ok(ExceptionType::ServiceAdded),
             2 => Ok(ExceptionType::ServiceRemoved),
@@ -353,7 +353,7 @@ impl<'de> serde::Deserialize<'de> for PaymentMethod {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = serde::Deserialize::deserialize(deserializer)?;
         match result {
             0 => Ok(PaymentMethod::PaidOnboard),
             1 => Ok(PaymentMethod::PaidBefore),
@@ -376,7 +376,7 @@ impl<'de> serde::Deserialize<'de> for Transfers {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(Transfers::Unlimited),
             r => match r.parse::<u32>() {
@@ -442,7 +442,8 @@ impl TimeOffset {
     }
 
     pub fn duration(&self) -> Duration {
-        Duration::hours(self.hours as i64) + Duration::minutes(self.minutes as i64)
+        Duration::hours(self.hours as i64)
+            + Duration::minutes(self.minutes as i64)
             + Duration::seconds(self.seconds as i64)
     }
 }
@@ -452,7 +453,7 @@ impl<'de> serde::Deserialize<'de> for TimeOffset {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         let mut parts = result.trim().split(':');
         let parse_part = |part: Option<&str>| -> Result<u32, D::Error> {
             match part {
@@ -463,9 +464,9 @@ impl<'de> serde::Deserialize<'de> for TimeOffset {
                 None => Err(serde::de::Error::custom("Unexpected timeoffset part")),
             }
         };
-        let hours = try!(parse_part(parts.next()));
-        let minutes = try!(parse_part(parts.next()));
-        let seconds = try!(parse_part(parts.next()));
+        let hours = parse_part(parts.next())?;
+        let minutes = parse_part(parts.next())?;
+        let seconds = parse_part(parts.next())?;
         Ok(TimeOffset::from_hms(hours, minutes, seconds))
     }
 }
@@ -488,7 +489,7 @@ impl<'de> serde::Deserialize<'de> for FrequencyAccuracy {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: String = try!(serde::Deserialize::deserialize(deserializer));
+        let result: String = serde::Deserialize::deserialize(deserializer)?;
         match result.trim() {
             "" => Ok(FrequencyAccuracy::Approximate),
             r => match r.parse::<u32>() {
@@ -526,7 +527,7 @@ impl<'de> serde::Deserialize<'de> for TransferType {
     where
         D: serde::Deserializer<'de>,
     {
-        let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
+        let result: u32 = serde::Deserialize::deserialize(deserializer)?;
         match result {
             0 => Ok(TransferType::Recommended),
             1 => Ok(TransferType::Timed),
@@ -555,9 +556,15 @@ pub struct FeedInfo {
     pub feed_publisher_name: String,
     pub feed_publisher_url: String,
     pub feed_lang: String,
-    #[serde(default = "default_feed_date", deserialize_with = "deserialize_option_calendardate")]
+    #[serde(
+        default = "default_feed_date",
+        deserialize_with = "deserialize_option_calendardate"
+    )]
     pub feed_start_date: Option<NaiveDate>,
-    #[serde(default = "default_feed_date", deserialize_with = "deserialize_option_calendardate")]
+    #[serde(
+        default = "default_feed_date",
+        deserialize_with = "deserialize_option_calendardate"
+    )]
     pub feed_end_date: Option<NaiveDate>,
     pub feed_version: Option<String>,
 }

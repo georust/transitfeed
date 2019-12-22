@@ -3,8 +3,6 @@ extern crate tempfile;
 use self::tempfile::{Builder, TempDir};
 use csv;
 use serde;
-use std;
-use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
 use zip;
