@@ -1,12 +1,12 @@
+use chrono::{Duration, NaiveDate};
 use serde;
 use serde::Deserializer;
-use chrono::{Duration, NaiveDate};
 
 pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let result: u32 = try!(serde::Deserialize::deserialize(deserializer));
+    let result: u32 = serde::Deserialize::deserialize(deserializer)?;
     match result {
         0 => Ok(false),
         1 => Ok(true),
@@ -18,7 +18,7 @@ pub fn deserialize_calendardate<'de, D>(deserializer: D) -> Result<NaiveDate, D:
 where
     D: Deserializer<'de>,
 {
-    let result: String = try!(serde::Deserialize::deserialize(deserializer));
+    let result: String = serde::Deserialize::deserialize(deserializer)?;
     match NaiveDate::parse_from_str(&result, "%Y%m%d") {
         Ok(d) => Ok(d),
         Err(e) => Err(serde::de::Error::custom(format!(
@@ -34,7 +34,7 @@ pub fn deserialize_option_calendardate<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let result: String = try!(serde::Deserialize::deserialize(deserializer));
+    let result: String = serde::Deserialize::deserialize(deserializer)?;
     match result.as_ref() {
         "" => Ok(None),
         s => match NaiveDate::parse_from_str(s, "%Y%m%d") {
@@ -51,7 +51,7 @@ pub fn deserialize_transferduration<'de, D>(deserializer: D) -> Result<Option<Du
 where
     D: Deserializer<'de>,
 {
-    let result: String = try!(serde::Deserialize::deserialize(deserializer));
+    let result: String = serde::Deserialize::deserialize(deserializer)?;
     match result.trim() {
         "" => Ok(None),
         r => match r.parse::<i64>() {

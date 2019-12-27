@@ -1,6 +1,6 @@
+use csv::{DeserializeErrorKind, Error as CsvError, ErrorKind};
 use std::error::Error as StdError;
 use std::fmt;
-use csv::{DeserializeErrorKind, Error as CsvError, ErrorKind};
 
 #[derive(Debug)]
 pub enum Error {
@@ -62,17 +62,7 @@ impl fmt::Display for Error {
 }
 
 impl StdError for Error {
-    fn description(&self) -> &str {
-        use self::Error::*;
-        match *self {
-            Feed(..) => "error using feed",
-            Csv(_, ref err) => err.description(),
-            FieldError(..) => "error processing field of a line",
-            LineError(..) => "error processing line",
-        }
-    }
-
-    fn cause(&self) -> Option<&StdError> {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         use self::Error::*;
         match *self {
             Feed(..) => None,
