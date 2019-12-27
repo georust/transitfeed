@@ -1,6 +1,3 @@
-extern crate csv;
-extern crate transitfeed;
-
 use transitfeed::{FeedReader, Trim};
 
 #[test]

@@ -8,7 +8,6 @@ validation, and manipulation.
 For files on your file system just us `GTFSIterator::from_path`
 
 ```rust
-extern crate transitfeed;
 use transitfeed::{GTFSIterator, Agency};
 
 fn read_agencies() {

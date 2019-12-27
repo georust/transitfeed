@@ -1,5 +1,7 @@
-use gtfs::error::Error;
-use csv::{DeserializeError, DeserializeRecordsIntoIter, ErrorKind, Position, Reader, StringRecord};
+use super::error::Error;
+use csv::{
+    DeserializeError, DeserializeRecordsIntoIter, ErrorKind, Position, Reader, StringRecord,
+};
 use serde;
 use std;
 
@@ -86,9 +88,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use csv;
     use super::*;
-    use gtfs::parse::*;
+    use crate::gtfs::parse::*;
+    use csv;
+    use serde::Deserialize;
 
     #[derive(Debug, Deserialize, PartialEq)]
     struct Test {

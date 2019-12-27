@@ -1,6 +1,6 @@
+use super::gtfs::parse::*;
 use chrono::{Duration, NaiveDate};
-use gtfs::parse::*;
-use serde;
+use serde::Deserialize;
 
 /// Agency
 #[derive(Debug, Deserialize)]
