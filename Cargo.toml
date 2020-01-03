@@ -15,5 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 tempfile = "3.0.1"
 zip = "0.5"
 
-[lib]
-bench=false
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "gtfs"
+path = "benches/gtfs_benchmark.rs"
+harness = false
