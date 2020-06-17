@@ -3,5 +3,5 @@ mod error;
 pub mod parse;
 mod gtfs;
 
-pub use gtfs::gtfs::GTFSIterator;
-pub use gtfs::error::Error;
+pub use error::Error;
+pub use gtfs::GTFSIterator;

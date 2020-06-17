@@ -1,19 +1,16 @@
-extern crate tempfile;
-
-use self::tempfile::{Builder, TempDir};
 use csv;
 use serde;
 use std::fs::File;
 use std::path::Path;
+use tempfile::{Builder, TempDir};
 use zip;
 
-use archive::extract_zip;
-use gtfs::Error;
-use gtfs::GTFSIterator;
-use transit::{
+use super::archive::extract_zip;
+use super::{
     Agency, Calendar, CalendarDate, FareAttribute, FareRule, FeedInfo, Frequency, Route,
     ShapePoint, Stop, StopTime, Transfer, Trip,
 };
+use super::{Error, GTFSIterator};
 
 pub use csv::{Terminator, Trim};
 
