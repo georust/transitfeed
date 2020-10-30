@@ -1,6 +1,6 @@
 use std;
-use std::io;
 use std::fs;
+use std::io;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use zip;
