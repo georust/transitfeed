@@ -1,5 +1,4 @@
 use chrono::{Duration, NaiveDate};
-use serde;
 use serde::Deserializer;
 
 pub fn deserialize_dow_field<'de, D>(deserializer: D) -> Result<bool, D::Error>

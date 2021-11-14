@@ -2,8 +2,6 @@ use super::error::Error;
 use csv::{
     DeserializeError, DeserializeRecordsIntoIter, ErrorKind, Position, Reader, StringRecord,
 };
-use serde;
-use std;
 
 pub struct GTFSIterator<R, T>
 where
@@ -40,19 +38,19 @@ where
         };
         Ok(GTFSIterator {
             iter: reader.into_deserialize(),
-            headers: headers,
+            headers,
             filename: filename.to_string(),
         })
     }
 
     fn wrap_fielderror(&self, err: &DeserializeError, position: &Option<Position>) -> Error {
-        let fieldname = match err.field() {
-            Some(field_pos) => Some(match self.headers.get(field_pos as usize) {
+        let fieldname = err
+            .field()
+            .map(|field_pos| match self.headers.get(field_pos as usize) {
                 Some(field) => field.to_string(),
-                None => format!("field {}", field_pos).to_string(),
-            }),
-            None => None,
-        };
+                None => format!("field {}", field_pos),
+            });
+
         // TODO:: What if position.line() is None?
         Error::FieldError(
             String::clone(&self.filename),

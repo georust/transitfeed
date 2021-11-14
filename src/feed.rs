@@ -1,9 +1,6 @@
-use csv;
-use serde;
 use std::fs::File;
 use std::path::Path;
 use tempfile::{Builder, TempDir};
-use zip;
 
 use super::archive::extract_zip;
 use super::{
@@ -41,7 +38,7 @@ impl LocalFeedProvider {
 
 impl FeedProvider for LocalFeedProvider {
     fn path(&self) -> &str {
-        return &self.path;
+        &self.path
     }
 }
 
@@ -60,7 +57,7 @@ impl ZipFeedProvider {
             zip::ZipArchive::new(File::open(zipfile).map_err(|e| Error::Feed(format!("{}", e)))?)
                 .map_err(|e| Error::Feed(format!("{}", e)))?;
         extract_zip(&mut zip, dir.path()).map_err(|e| Error::Feed(format!("{}", e)))?;
-        Ok(ZipFeedProvider { dir: dir })
+        Ok(ZipFeedProvider { dir })
     }
 }
 
@@ -85,7 +82,7 @@ impl FeedReader<ZipFeedProvider> {
 impl<P: FeedProvider> FeedReader<P> {
     pub fn from_provider(provider: P) -> Self {
         FeedReader {
-            provider: provider,
+            provider,
             builder: csv::ReaderBuilder::new(),
         }
     }
@@ -164,6 +161,6 @@ impl<P: FeedProvider> FeedReader<P> {
             Ok(reader) => reader,
             Err(e) => return Err(Error::Csv(path, e)),
         };
-        Ok(GTFSIterator::new(reader, &path)?)
+        GTFSIterator::new(reader, &path)
     }
 }

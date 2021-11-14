@@ -435,9 +435,9 @@ pub struct TimeOffset {
 impl TimeOffset {
     pub fn from_hms(hours: u32, minutes: u32, seconds: u32) -> TimeOffset {
         TimeOffset {
-            hours: hours,
-            minutes: minutes,
-            seconds: seconds,
+            hours,
+            minutes,
+            seconds,
         }
     }
 

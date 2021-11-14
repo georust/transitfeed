@@ -1,9 +1,7 @@
-use std;
 use std::fs;
 use std::io;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-use zip;
 
 pub fn extract_zip<T: io::Read + io::Seek>(
     archive: &mut zip::ZipArchive<T>,
@@ -15,7 +13,7 @@ pub fn extract_zip<T: io::Read + io::Seek>(
 
         {
             let comment = file.comment();
-            if comment.len() > 0 {
+            if !comment.is_empty() {
                 println!("  File comment: {}", comment);
             }
         }
@@ -23,7 +21,7 @@ pub fn extract_zip<T: io::Read + io::Seek>(
         let perms = convert_permissions(file.unix_mode());
 
         // also suspicious but why not?
-        if (&*file.name()).ends_with("/") {
+        if (&*file.name()).ends_with('/') {
             create_directory(&outpath, perms);
         } else {
             write_file(&mut file, &outpath, perms);
@@ -34,10 +32,7 @@ pub fn extract_zip<T: io::Read + io::Seek>(
 
 #[cfg(unix)]
 fn convert_permissions(mode: Option<u32>) -> Option<fs::Permissions> {
-    match mode {
-        Some(mode) => Some(fs::Permissions::from_mode(mode)),
-        None => None,
-    }
+    mode.map(fs::Permissions::from_mode)
 }
 #[cfg(not(unix))]
 fn convert_permissions(_mode: Option<u32>) -> Option<fs::Permissions> {
@@ -71,10 +66,7 @@ fn sanitize_filename(filename: &str) -> std::path::PathBuf {
 
     std::path::Path::new(no_null_filename)
         .components()
-        .filter(|component| match *component {
-            std::path::Component::Normal(..) => true,
-            _ => false,
-        })
+        .filter(|component| matches!(*component, std::path::Component::Normal(..)))
         .fold(std::path::PathBuf::new(), |mut path, ref cur| {
             path.push(cur.as_os_str());
             path
